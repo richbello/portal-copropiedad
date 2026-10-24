@@ -5,6 +5,8 @@ import { Aviso, useDatos, useSesion } from '../App'
 import Recibo from './Recibo'
 import { textoCuando } from './Calendario'
 
+const NOMBRE_DOC = { soat: 'SOAT', tecnomecanica: 'Tecnomecánica', vacuna: 'Vacuna antirrábica' }
+
 export default function Inicio() {
   const { usuario } = useSesion()
   const nav = useNavigate()
@@ -12,6 +14,7 @@ export default function Inicio() {
   const [error, setError] = useState('')
   const { datos: solicitudes } = useDatos('/api/solicitudes')
   const { datos: eventos } = useDatos('/api/eventos')
+  const { datos: vencen } = useDatos('/api/vencimientos/mios')
   const ahora = new Date()
   const proximos = (eventos || []).filter(e => new Date(e.fin || e.inicio) >= ahora).slice(0, 3)
 
@@ -33,6 +36,14 @@ export default function Inicio() {
         <Link className="boton" to="/solicitudes/nueva">Radicar una solicitud</Link>
       </div>
       <Aviso>{error}</Aviso>
+      {vencen?.length > 0 && <div className={`aviso ${vencen.some(d => d.estado === 'vencido') ? 'error' : 'alerta'}`} style={{ marginBottom: 16 }}>
+        <strong>Documentos por renovar</strong>
+        <ul style={{ margin: '6px 0 6px 18px', padding: 0 }}>
+          {vencen.map(d => <li key={d.objeto + d.documento}>{NOMBRE_DOC[d.documento]} de {d.que}: {d.estado === 'vencido'
+            ? `venció el ${fecha(d.vence)}` : d.dias === 0 ? 'vence hoy' : `vence en ${d.dias} días (${fecha(d.vence)})`}</li>)}
+        </ul>
+        <Link to="/mi-unidad">Actualizar fechas en Mi unidad</Link>
+      </div>}
       <div className="pila">
         {cuentas.map(ec => <Recibo key={ec.unidad_id} ec={ec} />)}
       </div>

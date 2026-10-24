@@ -21,6 +21,7 @@ import MiUnidad from './pages/MiUnidad'
 import Manual from './pages/Manual'
 import AdminCenso from './pages/AdminCenso'
 import AdminParqueaderos from './pages/AdminParqueaderos'
+import Clasificados from './pages/Clasificados'
 
 const SesionCtx = createContext(null)
 export const useSesion = () => useContext(SesionCtx)
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/mi-unidad" element={<MiUnidad />} />
           <Route path="/manual" element={<Manual />} />
+          <Route path="/clasificados" element={<Clasificados />} />
           {esLecturaGlobal(usuario) && <Route path="/admin/censo" element={<AdminCenso />} />}
           {esLecturaGlobal(usuario) && <Route path="/admin/parqueaderos" element={<AdminParqueaderos />} />}
           {esLecturaGlobal(usuario) && <Route path="/admin/cartera" element={<AdminCartera />} />}
@@ -116,6 +118,7 @@ function Marco({ children }) {
           {!global && <NavLink to="/mi-unidad">Mi unidad</NavLink>}
           <NavLink to="/calendario">Calendario</NavLink>
           <NavLink to="/solicitudes">Solicitudes</NavLink>
+          <NavLink to="/clasificados">Negocios y clasificados</NavLink>
           <NavLink to="/manual">Manual de convivencia</NavLink>
           <NavLink to="/documentos">Documentos</NavLink>
           <NavLink to="/presupuesto">Presupuesto y gastos</NavLink>

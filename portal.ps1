@@ -157,7 +157,7 @@ function Ayuda {
         '',
         '  .\portal.ps1 instalar      Instala dependencias y compila el frontend',
         '  .\portal.ps1 demo          Crea la base con datos de prueba (clave de todos: Demo2026*)',
-        '  .\portal.ps1 probar        Ejecuta las 24 pruebas automáticas',
+        '  .\portal.ps1 probar        Ejecuta las 31 pruebas automáticas',
         '  .\portal.ps1 iniciar       Arranca el portal en http://localhost:8000',
         '  .\portal.ps1 desarrollo    Backend con recarga + frontend Vite (para modificar código)',
         '  .\portal.ps1 compilar      Vuelve a compilar el frontend',

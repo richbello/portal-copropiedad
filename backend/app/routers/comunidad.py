@@ -15,6 +15,7 @@ from .. import models
 from ..db import get_db
 from ..notificaciones import notificar
 from ..security import auditar, requiere_rol, unidades_del_usuario, usuario_actual
+from .. import vencimientos
 
 router = APIRouter(prefix="/api", tags=["Comunidad"])
 
@@ -151,7 +152,11 @@ def _mascota_out(m):
 
 
 def _vehiculo_out(v):
-    return {"id": v.id, "tipo": v.tipo, "placa": v.placa, "marca": v.marca, "color": v.color}
+    out = {"id": v.id, "tipo": v.tipo, "placa": v.placa, "marca": v.marca, "color": v.color}
+    if v.tipo != "bicicleta":
+        out["soat_vence"], out["soat"] = v.soat_vence, vencimientos.estado(v.soat_vence)
+        out["tecnomecanica_vence"], out["tecnomecanica"] = v.tecnomecanica_vence, vencimientos.estado(v.tecnomecanica_vence)
+    return out
 
 
 def _parq_out(p: models.Parqueadero):
@@ -200,6 +205,8 @@ class VehiculoIn(BaseModel):
     placa: str | None = None
     marca: str | None = None
     color: str | None = None
+    soat_vence: date | None = None
+    tecnomecanica_vence: date | None = None
 
 
 def _validar(tipo: str, d) -> dict:
@@ -229,6 +236,8 @@ def _validar(tipo: str, d) -> dict:
             datos["placa"] = datos["placa"].upper().replace(" ", "").replace("-", "")
         if datos["tipo"] != "bicicleta" and not datos["placa"]:
             raise HTTPException(400, "Escriba la placa del vehículo")
+        if datos["tipo"] == "bicicleta":
+            datos["soat_vence"] = datos["tecnomecanica_vence"] = None
     return datos
 
 
@@ -325,7 +334,10 @@ def _filas_censo(db: Session) -> list[dict]:
             "bicicletas": sum(v.tipo == "bicicleta" for v in vs),
             "alertas": ([f"{m.nombre}: sin póliza (PPP)" for m in ms if m.potencialmente_peligrosa and not m.poliza]
                         + [f"{m.nombre}: vacuna vencida" for m in ms
-                           if m.vacuna_antirrabica_vence and m.vacuna_antirrabica_vence < date.today()]),
+                           if m.vacuna_antirrabica_vence and m.vacuna_antirrabica_vence < date.today()]
+                        + [f"{v.placa}: SOAT vencido" for v in vs if v.soat_vence and v.soat_vence < date.today()]
+                        + [f"{v.placa}: tecnomecánica vencida" for v in vs
+                           if v.tecnomecanica_vence and v.tecnomecanica_vence < date.today()]),
             "confirmado": conf.get(un.id), "vigente": _vigente(conf.get(un.id)),
         })
     return filas
@@ -529,3 +541,28 @@ def sorteo(d: SorteoIn, request: Request, u: models.Usuario = Depends(solo_admin
             f"tipo={d.tipo} semilla={semilla} participantes={len(espera)} asignados={len(resultado)}", request)
     db.commit()
     return {"semilla": semilla, "asignados": resultado, "sin_cupo": sin_cupo}
+
+
+# ======================= Vencimientos =======================
+
+@router.get("/vencimientos/mios")
+def mis_vencimientos(u: models.Usuario = Depends(usuario_actual), db: Session = Depends(get_db)):
+    """Documentos vencidos o por vencer (30 días) de las unidades del usuario."""
+    ids = unidades_del_usuario(u)
+    return [d for d in vencimientos.documentos(db, ids) if d["estado"] in ("vencido", "por_vencer")]
+
+
+@router.get("/vencimientos")
+def todos_vencimientos(u: models.Usuario = Depends(solo_admin), db: Session = Depends(get_db)):
+    unidades = {x.id: x.etiqueta for x in db.scalars(select(models.Unidad))}
+    filas = [dict(d, unidad=unidades.get(d["unidad_id"])) for d in vencimientos.documentos(db)
+             if d["estado"] in ("vencido", "por_vencer")]
+    return filas
+
+
+@router.post("/vencimientos/revisar")
+def revisar_ahora(request: Request, u: models.Usuario = Depends(solo_admin), db: Session = Depends(get_db)):
+    n = vencimientos.revisar(db)
+    auditar(db, u.id, "revisar_vencimientos", f"avisos={n}", request)
+    db.commit()
+    return {"avisos_enviados": n}

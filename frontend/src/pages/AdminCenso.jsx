@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { descargar, fecha } from '../api'
+import { api, descargar, fecha } from '../api'
 import { Aviso, Encabezado, Modal, useDatos, useSesion } from '../App'
 import { CensoUnidad } from './MiUnidad'
 
@@ -11,6 +11,14 @@ export default function AdminCenso() {
   const [filtro, setFiltro] = useState('todas')
   const [torre, setTorre] = useState('')
   const [abierta, setAbierta] = useState(null)
+  const { datos: vencen, recargar: recargarV } = useDatos(esAdmin ? '/api/vencimientos' : null)
+  const [avisos, setAvisos] = useState(null)
+  async function enviarAvisos() {
+    const r = await api.post('/api/vencimientos/revisar')
+    setAvisos(r.avisos_enviados ? `Se enviaron ${r.avisos_enviados} avisos.` : 'No había avisos pendientes; los vencimientos ya fueron notificados.')
+    recargarV()
+  }
+  const NOMBRE_DOC = { soat: 'SOAT', tecnomecanica: 'Tecnomecánica', vacuna: 'Vacuna antirrábica' }
 
   const torres = [...new Set((filas || []).map(f => f.torre))]
   const visibles = (filas || []).filter(f => (!torre || f.torre === torre) &&
@@ -34,6 +42,23 @@ export default function AdminCenso() {
           <div className="detalle">{r.carros} carros, {r.motos} motos, {r.bicicletas} bicicletas</div></div>
       </div>}
       {!esAdmin && <p className="aviso info">Por protección de datos personales, el detalle por unidad solo lo ve la administración.</p>}
+      {esAdmin && vencen && <section className="panel">
+        <div className="fila" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+          <h2 style={{ margin: 0 }}>Vencimientos de SOAT, tecnomecánica y vacunas</h2>
+          <button className="secundario" onClick={enviarAvisos}>Enviar avisos ahora</button>
+        </div>
+        <p className="peq suave" style={{ marginBottom: 8 }}>El portal avisa solo a cada unidad 30 días antes, 7 días antes y al vencer. Este botón fuerza la revisión de inmediato.</p>
+        {avisos && <p className="aviso ok" style={{ marginBottom: 8 }}>{avisos}</p>}
+        {vencen.length === 0 ? <p className="suave">No hay documentos vencidos ni por vencer en los próximos 30 días.</p> :
+          <div className="tabla-scroll"><table>
+            <thead><tr><th>Unidad</th><th>Documento</th><th>Estado</th></tr></thead>
+            <tbody>{vencen.map(d => <tr key={d.objeto + d.documento}>
+              <td style={{ whiteSpace: 'nowrap' }}>{d.unidad}</td><td>{NOMBRE_DOC[d.documento]}, {d.que}</td>
+              <td style={{ color: d.estado === 'vencido' ? 'var(--rojo)' : 'var(--ocre)' }}>
+                {d.estado === 'vencido' ? `Vencido desde ${fecha(d.vence)}` : `Vence ${fecha(d.vence)} (${d.dias} días)`}</td>
+            </tr>)}</tbody>
+          </table></div>}
+      </section>}
       {esAdmin && <div className="panel">
         <div className="fila" style={{ marginBottom: 12 }}>
           <select value={torre} onChange={e => setTorre(e.target.value)} style={{ width: 'auto' }} aria-label="Torre">

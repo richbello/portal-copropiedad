@@ -8,6 +8,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
+from sqlalchemy import select
+
 from app import models
 from app.config import NOMBRE_CONJUNTO, UPLOAD_DIR
 
@@ -136,13 +138,17 @@ def cargar(db, admin, unidades, propietarios):
         if rnd.random() < 0.65:
             placa = f"{letras[i_placa % 23]}{letras[(i_placa * 7) % 23]}{letras[(i_placa * 3) % 23]}{100 + idx * 13 % 900}"
             v = models.Vehiculo(unidad_id=u.id, tipo="carro", placa=placa, marca=rnd.choice(marcas_carro),
-                                color=rnd.choice(["Gris", "Blanco", "Rojo", "Negro"]))
+                                color=rnd.choice(["Gris", "Blanco", "Rojo", "Negro"]),
+                                soat_vence=hoy + timedelta(days=rnd.choice([-12, 5, 20, 90, 200, 300])),
+                                tecnomecanica_vence=rnd.choice([None, hoy + timedelta(days=rnd.randint(-20, 330))]))
             db.add(v)
             vehiculos_carro.append(v)
         if rnd.random() < 0.3:
             db.add(models.Vehiculo(unidad_id=u.id, tipo="moto", placa=f"{letras[idx % 23]}{letras[(idx + 5) % 23]}"
                                    f"{letras[(idx + 9) % 23]}{10 + idx}{letras[idx % 23]}",
-                                   marca=rnd.choice(marcas_moto), color="Negro"))
+                                   marca=rnd.choice(marcas_moto), color="Negro",
+                                   soat_vence=hoy + timedelta(days=rnd.randint(-10, 300)),
+                                   tecnomecanica_vence=hoy + timedelta(days=rnd.randint(10, 300))))
         if rnd.random() < 0.5:
             db.add(models.Vehiculo(unidad_id=u.id, tipo="bicicleta", marca="GW", color="Azul"))
         if idx % 5 != 3:
@@ -150,10 +156,37 @@ def cargar(db, admin, unidades, propietarios):
                                       confirmado_por=dueno.id))
     db.flush()
 
+    # El usuario demo (Torre 1 - 101) tiene el SOAT próximo a vencer, para ver el aviso
+    for v in db.scalars(select(models.Vehiculo).where(models.Vehiculo.unidad_id == unidades[0].id,
+                                                      models.Vehiculo.tipo == "carro")):
+        v.soat_vence, v.tecnomecanica_vence = hoy + timedelta(days=12), hoy + timedelta(days=210)
+
     # Asignación inicial de 9 de los 12 parqueaderos de carro; el resto queda para el sorteo
     for p, v in zip([x for x in parqs if x.tipo == "carro" and not x.visitantes][:9], vehiculos_carro):
         p.unidad_id, p.vehiculo_id = v.unidad_id, v.id
         p.asignado_desde, p.forma_asignacion = hoy - timedelta(days=200), "sorteo"
+
+    # Negocios y clasificados
+    anuncios = [
+        (0, "negocio", "Tortas y postres por encargo", "Tortas de cumpleaños, cupcakes y postres en vaso. "
+         "Pedidos con dos días de anticipación. Entrego en su apartamento.", 45000, True),
+        (2, "servicio", "Clases de matemáticas y física", "Licenciado con experiencia en colegio. Refuerzo para "
+         "bachillerato y preparación para el ICFES. Clases en la sala de juntas o virtuales.", 35000, False),
+        (4, "venta", "Bicicleta de niño rin 20", "En buen estado, poco uso. Incluye casco. Se puede ver en la torre 2.",
+         180000, True),
+        (5, "arriendo", "Arriendo parqueadero cubierto", "Parqueadero propio disponible para carro pequeño. "
+         "Solo para residentes del conjunto.", 120000, False),
+        (8, "compra", "Busco coche para bebé", "Busco coche en buen estado, preferiblemente plegable. Pago justo.",
+         None, False),
+        (10, "servicio", "Plomería y arreglos locativos", "Destapes, fugas, cambio de grifería y pintura. "
+         "Trabajo garantizado y precios de vecino.", None, False),
+    ]
+    for i, cat, titulo, desc, precio, neg in anuncios:
+        dueno = propietarios[i]
+        db.add(models.Anuncio(usuario_id=dueno.id, unidad_id=unidades[i].id, categoria=cat, titulo=titulo,
+                              descripcion=desc, precio=precio, precio_negociable=neg, telefono=dueno.telefono,
+                              whatsapp=True, creado=datetime.now() - timedelta(days=rnd.randint(0, 12)),
+                              vence=hoy + timedelta(days=models.DIAS_VIGENCIA_ANUNCIO[cat] - rnd.randint(0, 12))))
 
     ruta = "documentos/manual_convivencia_demo.pdf"
     (UPLOAD_DIR / "documentos").mkdir(parents=True, exist_ok=True)

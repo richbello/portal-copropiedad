@@ -282,6 +282,8 @@ class Vehiculo(Base):
     placa: Mapped[str | None] = mapped_column(String(12))
     marca: Mapped[str | None] = mapped_column(String(60))
     color: Mapped[str | None] = mapped_column(String(40))
+    soat_vence: Mapped[date | None] = mapped_column(Date)
+    tecnomecanica_vence: Mapped[date | None] = mapped_column(Date)  # vacío = aún no la requiere
     actualizado: Mapped[datetime] = mapped_column(DateTime, default=ahora, onupdate=ahora)
 
 
@@ -307,3 +309,57 @@ class Parqueadero(Base):
 
     unidad: Mapped["Unidad | None"] = relationship()
     vehiculo: Mapped["Vehiculo | None"] = relationship()
+
+
+class AlertaEnviada(Base):
+    """Registro de avisos de vencimiento ya enviados, para no repetirlos."""
+    __tablename__ = "alertas_enviadas"
+    clave: Mapped[str] = mapped_column(String(120), primary_key=True)
+    fecha: Mapped[datetime] = mapped_column(DateTime, default=ahora)
+
+
+# ---------------- Negocios y clasificados ----------------
+
+CATEGORIAS_ANUNCIO = ("negocio", "servicio", "venta", "compra", "arriendo")
+DIAS_VIGENCIA_ANUNCIO = {"negocio": 90, "servicio": 90, "venta": 30, "compra": 30, "arriendo": 45}
+
+
+class Anuncio(Base):
+    __tablename__ = "anuncios"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+    unidad_id: Mapped[int | None] = mapped_column(ForeignKey("unidades.id"))
+    categoria: Mapped[str] = mapped_column(String(20), index=True)
+    titulo: Mapped[str] = mapped_column(String(120))
+    descripcion: Mapped[str] = mapped_column(Text)
+    precio: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    precio_negociable: Mapped[bool] = mapped_column(Boolean, default=False)
+    telefono: Mapped[str | None] = mapped_column(String(30))
+    whatsapp: Mapped[bool] = mapped_column(Boolean, default=True)
+    estado: Mapped[str] = mapped_column(String(20), default="activo")  # activo | cerrado | retirado
+    motivo_retiro: Mapped[str | None] = mapped_column(String(300))
+    creado: Mapped[datetime] = mapped_column(DateTime, default=ahora)
+    vence: Mapped[date] = mapped_column(Date)
+
+    usuario: Mapped[Usuario] = relationship()
+    unidad: Mapped["Unidad | None"] = relationship()
+    fotos: Mapped[list["AnuncioFoto"]] = relationship(back_populates="anuncio", cascade="all, delete-orphan")
+    reportes: Mapped[list["AnuncioReporte"]] = relationship(back_populates="anuncio", cascade="all, delete-orphan")
+
+
+class AnuncioFoto(Base):
+    __tablename__ = "anuncio_fotos"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    anuncio_id: Mapped[int] = mapped_column(ForeignKey("anuncios.id"), index=True)
+    ruta: Mapped[str] = mapped_column(String(300))
+    anuncio: Mapped[Anuncio] = relationship(back_populates="fotos")
+
+
+class AnuncioReporte(Base):
+    __tablename__ = "anuncio_reportes"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    anuncio_id: Mapped[int] = mapped_column(ForeignKey("anuncios.id"), index=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
+    motivo: Mapped[str] = mapped_column(String(300))
+    fecha: Mapped[datetime] = mapped_column(DateTime, default=ahora)
+    anuncio: Mapped[Anuncio] = relationship(back_populates="reportes")

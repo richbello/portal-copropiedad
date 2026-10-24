@@ -67,6 +67,8 @@ La documentación interactiva de la API queda en http://localhost:8000/docs
 - **Calendario** mensual de asambleas, reuniones de consejo, mantenimientos, cortes de servicio y actividades. La administración programa los eventos y puede avisar a todos; los residentes ven los próximos eventos desde el inicio.
 - **Censo** de cada unidad: personas (de los menores solo se guarda el nombre), mascotas con vacuna antirrábica y póliza para razas potencialmente peligrosas (Ley 1801 de 2016), y vehículos. Cada unidad confirma su censo al menos cada 6 meses. Solo lo ven la propia unidad y la administración; el consejo y el revisor fiscal ven únicamente totales.
 - **Parqueaderos** de carros, motos y bicicletas: inventario, asignación manual, lista de espera automática (unidades con vehículo registrado y sin cupo) y **sorteo verificable**, cuya semilla queda en la auditoría.
+- **SOAT y revisión técnico-mecánica** por cada carro y moto, con avisos automáticos a la unidad 30 días antes, 7 días antes y el día del vencimiento (también para la vacuna antirrábica de las mascotas). Cada aviso se envía una sola vez. La administración ve todos los vencimientos y puede forzar la revisión.
+- **Negocios y clasificados**: emprendimientos, servicios, ventas, compras y arriendos entre vecinos, con hasta 3 fotos, precio, contacto por WhatsApp o llamada y vigencia automática (90 días negocios y servicios, 45 arriendos, 30 ventas y compras). Los vecinos pueden reportar anuncios y la administración retirarlos indicando el motivo. Se muestra el nombre con la inicial del apellido y la torre, nunca el apartamento.
 - **Manual de convivencia** visible en el portal, con la versión vigente y las anteriores. Se publica desde Documentos con la categoría "Manual de convivencia".
 
 **Para la administración**
@@ -79,6 +81,10 @@ La documentación interactiva de la API queda en http://localhost:8000/docs
 - Gestión de usuarios: creación con clave temporal, asignación de varias unidades, propietario o residente, restablecer clave, desactivar.
 - Parámetros (presupuesto mensual, día de vencimiento, tasa de mora, tope legal, cuenta de recaudo).
 - Registro de auditoría de todas las acciones: quién, qué, cuándo y desde qué IP.
+
+## Actualizaciones sin perder datos
+
+Al arrancar, el portal crea las tablas nuevas y agrega las columnas nuevas que traiga cada versión, sin borrar nada. Basta con `git pull`, `.\portal.ps1 instalar` y `.\portal.ps1 iniciar`. Haga un `.\portal.ps1 respaldo` antes de actualizar una base con datos reales.
 
 ## Seguridad y cumplimiento
 
@@ -96,7 +102,7 @@ La documentación interactiva de la API queda en http://localhost:8000/docs
 cd backend
 pytest -q
 ```
-24 pruebas de extremo a extremo: festivos colombianos, bloqueo de cuenta, aislamiento entre propietarios, cuadre del estado de cuenta, paz y salvo, flujo completo de solicitud, reservas cruzadas, archivos peligrosos, facturación sin duplicados, tope de intereses, importación con errores, primer ingreso, permisos del consejo, auditoría la carga de las 216 unidades de Avellana con sus propietarios, el calendario, la privacidad del censo y el sorteo de parqueaderos.
+31 pruebas de extremo a extremo: festivos colombianos, bloqueo de cuenta, aislamiento entre propietarios, cuadre del estado de cuenta, paz y salvo, flujo completo de solicitud, reservas cruzadas, archivos peligrosos, facturación sin duplicados, tope de intereses, importación con errores, primer ingreso, permisos del consejo, auditoría la carga de las 216 unidades de Avellana con sus propietarios, el calendario, la privacidad del censo, el sorteo de parqueaderos, los avisos de SOAT y tecnomecánica y los clasificados.
 
 ## Paso a producción
 

@@ -85,7 +85,11 @@ export function CensoUnidad({ unidadId, onCambio }) {
             return (
               <tr key={v.id}>
                 <td><strong>{NOMBRES.vehiculos[v.tipo]}{v.placa && ` ${v.placa}`}</strong>
-                  <div className="peq suave">{[v.marca, v.color].filter(Boolean).join(', ')}</div></td>
+                  <div className="peq suave">{[v.marca, v.color].filter(Boolean).join(', ')}</div>
+                  {v.tipo !== 'bicicleta' && <div className="fila" style={{ gap: 6, marginTop: 6 }}>
+                    <Documento nombre="SOAT" fecha={v.soat_vence} est={v.soat} />
+                    <Documento nombre="Tecnomecánica" fecha={v.tecnomecanica_vence} est={v.tecnomecanica} sinDato="Tecnomecánica: no registrada" />
+                  </div>}</td>
                 <td>{p ? <span className="estado respondida">Parqueadero {p.codigo}</span>
                   : <span className="estado en_tramite">En espera de parqueadero</span>}</td>
                 <td className="derecha" style={{ whiteSpace: 'nowrap' }}>
@@ -101,10 +105,19 @@ export function CensoUnidad({ unidadId, onCambio }) {
   )
 }
 
+// Estado de un documento con fecha de vencimiento (SOAT, tecnomecánica)
+export function Documento({ nombre, fecha: vence, est, sinDato }) {
+  if (!est || est.estado === 'sin_dato') return <span className="doc doc-sin">{sinDato || `${nombre}: sin fecha`}</span>
+  const txt = est.estado === 'vencido' ? `${nombre} vencido desde ${fecha(vence)}`
+    : est.estado === 'por_vencer' ? (est.dias === 0 ? `${nombre} vence hoy` : `${nombre} vence en ${est.dias} días`)
+    : `${nombre} hasta ${fecha(vence)}`
+  return <span className={`doc doc-${est.estado}`}>{txt}</span>
+}
+
 const VACIOS = {
   personas: { nombre: '', relacion: 'familiar', documento: '', telefono: '', menor_de_edad: false, contacto_emergencia: false },
   mascotas: { nombre: '', especie: 'perro', raza: '', color: '', vacuna_antirrabica_vence: '', potencialmente_peligrosa: false, poliza: '' },
-  vehiculos: { tipo: 'carro', placa: '', marca: '', color: '' },
+  vehiculos: { tipo: 'carro', placa: '', marca: '', color: '', soat_vence: '', tecnomecanica_vence: '' },
 }
 const TITULOS = { personas: 'persona', mascotas: 'mascota', vehiculos: 'vehículo' }
 
@@ -119,7 +132,7 @@ function FormCenso({ unidadId, tipo, item, onCerrar, onListo }) {
   async function guardar(e) {
     e.preventDefault(); setError('')
     const datos = { ...f }
-    if ('vacuna_antirrabica_vence' in datos && !datos.vacuna_antirrabica_vence) datos.vacuna_antirrabica_vence = null
+    for (const k of ['vacuna_antirrabica_vence', 'soat_vence', 'tecnomecanica_vence']) if (k in datos && !datos[k]) datos[k] = null
     try {
       if (item) await api.put(`/api/censo/unidades/${unidadId}/${tipo}/${item.id}`, datos)
       else await api.post(`/api/censo/unidades/${unidadId}/${tipo}`, datos)
@@ -163,7 +176,14 @@ function FormCenso({ unidadId, tipo, item, onCerrar, onListo }) {
           {f.tipo !== 'bicicleta' && <label>Placa<input required value={f.placa} onChange={set('placa')} style={{ textTransform: 'uppercase' }} /></label>}
           <label>Marca y modelo<input value={f.marca} onChange={set('marca')} /></label>
           <label>Color<input value={f.color} onChange={set('color')} /></label>
+          {f.tipo !== 'bicicleta' && <>
+            <label>SOAT vigente hasta<input type="date" value={f.soat_vence || ''} onChange={set('soat_vence')} /></label>
+            <label>Tecnomecánica vigente hasta
+              <span className="ayuda">Déjela vacía si su vehículo aún no la requiere (los carros particulares nuevos desde el 5.º año y las motos desde el 2.º)</span>
+              <input type="date" value={f.tecnomecanica_vence || ''} onChange={set('tecnomecanica_vence')} /></label>
+          </>}
         </div>}
+        {tipo === 'vehiculos' && f.tipo !== 'bicicleta' && <p className="peq suave">Le avisaremos 30 días antes, 7 días antes y el día del vencimiento.</p>}
         <Aviso>{error}</Aviso>
         <div><button>{item ? 'Guardar cambios' : `Agregar ${TITULOS[tipo]}`}</button></div>
       </form>

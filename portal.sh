@@ -91,7 +91,7 @@ Portal de Propietarios — comandos
 
   ./portal.sh instalar      Instala Python, dependencias y compila el frontend
   ./portal.sh demo          Crea la base con datos de prueba (clave de todos: Demo2026*)
-  ./portal.sh probar        Ejecuta las 24 pruebas automáticas
+  ./portal.sh probar        Ejecuta las 31 pruebas automáticas
   ./portal.sh iniciar       Arranca el portal completo en el puerto 8000
   ./portal.sh desarrollo    Backend con recarga + frontend Vite (para modificar código)
   ./portal.sh compilar      Vuelve a compilar el frontend
