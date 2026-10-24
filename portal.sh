@@ -50,6 +50,13 @@ iniciar() {
   cd "$BACK" && exec "$PY" -m uvicorn app.main:app --host 0.0.0.0 --port "$PUERTO"
 }
 
+red() {
+  [ -d "$FRONT/dist" ] || compilar
+  verde "Portal visible en su red WiFi. Abra en el celular (mismo WiFi):"
+  for ip in $(hostname -I 2>/dev/null || ipconfig getifaddr en0 2>/dev/null); do verde "   http://$ip:$PUERTO"; done
+  cd "$BACK" && exec "$PY" -m uvicorn app.main:app --host 0.0.0.0 --port "$PUERTO"
+}
+
 desarrollo() {
   verde "Backend en :$PUERTO con recarga automática y frontend Vite en :5173"
   (cd "$BACK" && "$PY" -m uvicorn app.main:app --reload --port "$PUERTO") &
@@ -93,6 +100,7 @@ Portal de Propietarios — comandos
   ./portal.sh demo          Crea la base con datos de prueba (clave de todos: Demo2026*)
   ./portal.sh probar        Ejecuta las 31 pruebas automáticas
   ./portal.sh iniciar       Arranca el portal completo en el puerto 8000
+  ./portal.sh red           Arranca el portal para verlo desde el celular en el mismo WiFi
   ./portal.sh desarrollo    Backend con recarga + frontend Vite (para modificar código)
   ./portal.sh compilar      Vuelve a compilar el frontend
   ./portal.sh admin <correo> "<nombre>"   Crea el primer administrador real
@@ -111,6 +119,6 @@ EOF
 
 cmd="${1:-ayuda}"; shift || true
 case "$cmd" in
-  instalar|demo|probar|compilar|iniciar|desarrollo|admin|respaldo|api|conjunto|ayuda) "$cmd" "$@" ;;
+  instalar|demo|probar|compilar|iniciar|red|desarrollo|admin|respaldo|api|conjunto|ayuda) "$cmd" "$@" ;;
   *) rojo "Comando desconocido: $cmd"; ayuda; exit 1 ;;
 esac

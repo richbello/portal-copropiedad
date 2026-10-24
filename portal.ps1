@@ -93,6 +93,24 @@ function Iniciar {
     Correr (PyVenv) @('-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', "$Puerto") $Back
 }
 
+function Red {
+    # Arranca el portal visible para otros equipos de la misma red WiFi (celular, tablet)
+    if (-not (Test-Path (Join-Path $Front 'dist'))) { Compilar }
+    if (-not (Test-Path (Join-Path $Back 'copropiedad.db')) -and -not $env:DATABASE_URL) { Demo }
+    $ips = @()
+    try {
+        $ips = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction Stop |
+            Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.PrefixOrigin -ne 'WellKnown' } |
+            Select-Object -ExpandProperty IPAddress
+    } catch { }
+    Ok 'Portal visible en su red WiFi. Abra en el celular (conectado al mismo WiFi):'
+    if ($ips) { foreach ($ip in $ips) { Ok "   http://${ip}:$Puerto" } }
+    else { Write-Host '   http://<IP-de-este-computador>:8000   (la IP aparece con el comando ipconfig)' }
+    Write-Host 'Si Windows pregunta por el firewall, permita el acceso en redes PRIVADAS.' -ForegroundColor Yellow
+    Write-Host 'Ctrl+C para detener.'
+    Correr (PyVenv) @('-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', "$Puerto") $Back
+}
+
 function Desarrollo {
     Ok "Backend con recarga automática en :$Puerto y frontend en http://localhost:5173"
     $srv = Start-Process -FilePath (PyVenv) -ArgumentList @('-m', 'uvicorn', 'app.main:app', '--reload', '--port', "$Puerto") `
@@ -159,6 +177,7 @@ function Ayuda {
         '  .\portal.ps1 demo          Crea la base con datos de prueba (clave de todos: Demo2026*)',
         '  .\portal.ps1 probar        Ejecuta las 31 pruebas automáticas',
         '  .\portal.ps1 iniciar       Arranca el portal en http://localhost:8000',
+        '  .\portal.ps1 red           Arranca el portal para verlo desde el celular en el mismo WiFi',
         '  .\portal.ps1 desarrollo    Backend con recarga + frontend Vite (para modificar código)',
         '  .\portal.ps1 compilar      Vuelve a compilar el frontend',
         '  .\portal.ps1 admin <correo> "<nombre>"   Crea el administrador real',
@@ -184,6 +203,7 @@ switch ($Comando.ToLower()) {
     'probar'     { Probar }
     'compilar'   { Compilar }
     'iniciar'    { Iniciar }
+    'red'        { Red }
     'desarrollo' { Desarrollo }
     'admin'      { Admin }
     'respaldo'   { Respaldo }
