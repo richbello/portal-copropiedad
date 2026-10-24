@@ -91,7 +91,7 @@ Portal de Propietarios — comandos
 
   ./portal.sh instalar      Instala Python, dependencias y compila el frontend
   ./portal.sh demo          Crea la base con datos de prueba (clave de todos: Demo2026*)
-  ./portal.sh probar        Ejecuta las 18 pruebas automáticas
+  ./portal.sh probar        Ejecuta las 24 pruebas automáticas
   ./portal.sh iniciar       Arranca el portal completo en el puerto 8000
   ./portal.sh desarrollo    Backend con recarga + frontend Vite (para modificar código)
   ./portal.sh compilar      Vuelve a compilar el frontend
@@ -101,6 +101,7 @@ Portal de Propietarios — comandos
   ./portal.sh conjunto cargar-unidades [--confirmar]
   ./portal.sh conjunto plantilla-propietarios
   ./portal.sh conjunto cargar-propietarios [--confirmar]
+  ./portal.sh conjunto parqueaderos --tipo carro --cantidad 150 --prefijo C
   ./portal.sh conjunto resumen
   ./portal.sh api <correo> <clave> <GET|POST> <ruta> [json]
                             Consulta la API sin abrir el navegador. Ej.:

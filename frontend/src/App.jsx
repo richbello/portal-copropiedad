@@ -16,6 +16,11 @@ import AdminCartera from './pages/AdminCartera'
 import AdminFacturacion from './pages/AdminFacturacion'
 import AdminUsuarios from './pages/AdminUsuarios'
 import AdminConfiguracion from './pages/AdminConfiguracion'
+import Calendario from './pages/Calendario'
+import MiUnidad from './pages/MiUnidad'
+import Manual from './pages/Manual'
+import AdminCenso from './pages/AdminCenso'
+import AdminParqueaderos from './pages/AdminParqueaderos'
 
 const SesionCtx = createContext(null)
 export const useSesion = () => useContext(SesionCtx)
@@ -63,6 +68,11 @@ export default function App() {
           <Route path="/documentos" element={<Documentos />} />
           <Route path="/presupuesto" element={<Presupuesto />} />
           <Route path="/notificaciones" element={<Notificaciones />} />
+          <Route path="/calendario" element={<Calendario />} />
+          <Route path="/mi-unidad" element={<MiUnidad />} />
+          <Route path="/manual" element={<Manual />} />
+          {esLecturaGlobal(usuario) && <Route path="/admin/censo" element={<AdminCenso />} />}
+          {esLecturaGlobal(usuario) && <Route path="/admin/parqueaderos" element={<AdminParqueaderos />} />}
           {esLecturaGlobal(usuario) && <Route path="/admin/cartera" element={<AdminCartera />} />}
           {esGestion(usuario) && <Route path="/admin/facturacion" element={<AdminFacturacion />} />}
           {esGestion(usuario) && <Route path="/admin/usuarios" element={<AdminUsuarios />} />}
@@ -103,13 +113,18 @@ function Marco({ children }) {
         <nav className="nav">
           <NavLink to="/" end>{global ? 'Tablero' : 'Inicio'}</NavLink>
           {!global && <NavLink to="/estado-cuenta">Estado de cuenta</NavLink>}
+          {!global && <NavLink to="/mi-unidad">Mi unidad</NavLink>}
+          <NavLink to="/calendario">Calendario</NavLink>
           <NavLink to="/solicitudes">Solicitudes</NavLink>
+          <NavLink to="/manual">Manual de convivencia</NavLink>
           <NavLink to="/documentos">Documentos</NavLink>
           <NavLink to="/presupuesto">Presupuesto y gastos</NavLink>
           <NavLink to="/notificaciones">Notificaciones {sinLeer > 0 && <span className="punto">{sinLeer}</span>}</NavLink>
           {global && <>
             <div className="nav-grupo">Administración</div>
             <NavLink to="/admin/cartera">Cartera</NavLink>
+            <NavLink to="/admin/censo">Censo</NavLink>
+            <NavLink to="/admin/parqueaderos">Parqueaderos</NavLink>
             {gestion && <NavLink to="/admin/facturacion">Facturación y pagos</NavLink>}
             {gestion && <NavLink to="/admin/usuarios">Propietarios y usuarios</NavLink>}
             <NavLink to="/admin/configuracion">Configuración y auditoría</NavLink>

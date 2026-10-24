@@ -12,8 +12,10 @@ Comandos:
       Crea datos/propietarios.csv con una fila por unidad para llenar en Excel.
   python conjunto.py cargar-propietarios [--confirmar]
       Crea los usuarios, los asigna a sus unidades y genera datos/claves_temporales.csv.
+  python conjunto.py parqueaderos --tipo carro --cantidad 150 --prefijo C [--ubicacion Sótano] [--visitantes]
+      Crea los parqueaderos C-001 a C-150 (también moto y bicicleta). No duplica códigos existentes.
   python conjunto.py resumen
-      Muestra cuántas unidades y usuarios hay en la base.
+      Muestra cuántas unidades, usuarios y parqueaderos hay en la base.
 
 Sin --confirmar solo se revisa el archivo y se muestran los errores; no se guarda nada.
 """
@@ -259,6 +261,27 @@ def cargar_propietarios(confirmar: bool) -> None:
         print(f"\nListo: no había personas nuevas. {asignaciones} asignaciones de unidad agregadas.")
 
 
+def parqueaderos(tipo: str, cantidad: int, prefijo: str, desde: int, ubicacion: str | None, visitantes: bool) -> None:
+    if tipo not in models.TIPOS_VEHICULO:
+        sys.exit(f"Tipo debe ser uno de: {', '.join(models.TIPOS_VEHICULO)}")
+    Base.metadata.create_all(engine)
+    db = SessionLocal()
+    existentes = set(db.scalars(select(models.Parqueadero.codigo)))
+    ancho = max(3, len(str(desde + cantidad - 1)))
+    creados = 0
+    for n in range(desde, desde + cantidad):
+        codigo = f"{prefijo.upper()}-{n:0{ancho}d}"
+        if codigo not in existentes:
+            db.add(models.Parqueadero(codigo=codigo, tipo=tipo, ubicacion=ubicacion, visitantes=visitantes))
+            creados += 1
+    db.add(models.Auditoria(accion="generar_parqueaderos", detalle=f"terminal: {tipo} {prefijo} x{creados}"))
+    db.commit()
+    print(f"{creados} parqueaderos de {tipo}{' para visitantes' if visitantes else ''} creados "
+          f"({prefijo.upper()}-{desde:0{ancho}d} a {prefijo.upper()}-{desde + cantidad - 1:0{ancho}d}).")
+    if creados < cantidad:
+        print(f"{cantidad - creados} ya existían y se omitieron.")
+
+
 def resumen() -> None:
     Base.metadata.create_all(engine)
     db = SessionLocal()
@@ -273,6 +296,12 @@ def resumen() -> None:
     sin = db.scalar(select(func.count()).select_from(models.Unidad)
                     .where(~models.Unidad.id.in_(select(models.UsuarioUnidad.unidad_id))))
     print(f"Unidades sin ningún usuario asignado: {sin}")
+    for t in models.TIPOS_VEHICULO:
+        total = db.scalar(select(func.count()).select_from(models.Parqueadero).where(models.Parqueadero.tipo == t))
+        if total:
+            asig = db.scalar(select(func.count()).select_from(models.Parqueadero).where(
+                models.Parqueadero.tipo == t, models.Parqueadero.unidad_id.is_not(None)))
+            print(f"Parqueaderos de {t}: {total} ({asig} asignados)")
 
 
 def main(argv=None):
@@ -290,6 +319,13 @@ def main(argv=None):
     t.add_argument("--forzar", action="store_true")
     cp = sub.add_parser("cargar-propietarios", help="Crea usuarios desde datos/propietarios.csv")
     cp.add_argument("--confirmar", action="store_true")
+    pq = sub.add_parser("parqueaderos", help="Crea parqueaderos numerados")
+    pq.add_argument("--tipo", required=True, choices=["carro", "moto", "bicicleta"])
+    pq.add_argument("--cantidad", type=int, required=True)
+    pq.add_argument("--prefijo", required=True)
+    pq.add_argument("--desde", type=int, default=1)
+    pq.add_argument("--ubicacion")
+    pq.add_argument("--visitantes", action="store_true")
     sub.add_parser("resumen", help="Resumen de lo cargado")
     a = p.parse_args(argv)
     if a.cmd == "generar":
@@ -300,6 +336,8 @@ def main(argv=None):
         plantilla_propietarios(a.forzar)
     elif a.cmd == "cargar-propietarios":
         cargar_propietarios(a.confirmar)
+    elif a.cmd == "parqueaderos":
+        parqueaderos(a.tipo, a.cantidad, a.prefijo, a.desde, a.ubicacion, a.visitantes)
     else:
         resumen()
 

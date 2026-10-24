@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api, fecha, NOMBRES } from '../api'
 import { Aviso, useDatos, useSesion } from '../App'
 import Recibo from './Recibo'
+import { textoCuando } from './Calendario'
 
 export default function Inicio() {
   const { usuario } = useSesion()
@@ -10,6 +11,9 @@ export default function Inicio() {
   const [cuentas, setCuentas] = useState([])
   const [error, setError] = useState('')
   const { datos: solicitudes } = useDatos('/api/solicitudes')
+  const { datos: eventos } = useDatos('/api/eventos')
+  const ahora = new Date()
+  const proximos = (eventos || []).filter(e => new Date(e.fin || e.inicio) >= ahora).slice(0, 3)
 
   useEffect(() => {
     Promise.all(usuario.unidades.map(u => api.get(`/api/unidades/${u.id}/estado-cuenta`)))
@@ -32,6 +36,18 @@ export default function Inicio() {
       <div className="pila">
         {cuentas.map(ec => <Recibo key={ec.unidad_id} ec={ec} />)}
       </div>
+
+      {proximos.length > 0 && <section className="panel" style={{ marginTop: 16 }}>
+        <div className="fila" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+          <h2 style={{ margin: 0 }}>Próximos eventos</h2>
+          <Link to="/calendario">Ver calendario</Link>
+        </div>
+        <div className="rejilla rejilla-4">
+          {proximos.map(e => <div key={e.id} className={`evento cat-borde-${e.categoria}`}>
+            <strong>{e.titulo}</strong><div className="peq">{textoCuando(e)}</div>{e.lugar && <div className="peq suave">{e.lugar}</div>}
+          </div>)}
+        </div>
+      </section>}
 
       <div className="rejilla rejilla-2" style={{ marginTop: 16 }}>
         <section className="panel">

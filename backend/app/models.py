@@ -220,3 +220,90 @@ class Gasto(Base):
     creado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
 
     rubro: Mapped[RubroPresupuesto] = relationship(back_populates="gastos")
+
+
+# ---------------- Comunidad: calendario, censo, parqueaderos ----------------
+# Todo en tablas nuevas, para que una base existente se actualice sola sin migraciones.
+
+CATEGORIAS_EVENTO = ("asamblea", "reunion_consejo", "mantenimiento", "corte_servicio",
+                     "cultural", "deportivo", "salud", "otro")
+RELACIONES_PERSONA = ("propietario", "familiar", "arrendatario", "empleado_domestico", "otro")
+ESPECIES = ("perro", "gato", "otro")
+TIPOS_VEHICULO = ("carro", "moto", "bicicleta")
+
+
+class Evento(Base):
+    __tablename__ = "eventos"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    titulo: Mapped[str] = mapped_column(String(160))
+    descripcion: Mapped[str | None] = mapped_column(Text)
+    categoria: Mapped[str] = mapped_column(String(30), default="otro")
+    lugar: Mapped[str | None] = mapped_column(String(120))
+    inicio: Mapped[datetime] = mapped_column(DateTime, index=True)
+    fin: Mapped[datetime | None] = mapped_column(DateTime)
+    todo_el_dia: Mapped[bool] = mapped_column(Boolean, default=False)
+    creado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+    creado: Mapped[datetime] = mapped_column(DateTime, default=ahora)
+
+
+class Persona(Base):
+    """Censo: quién vive en cada unidad."""
+    __tablename__ = "censo_personas"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    unidad_id: Mapped[int] = mapped_column(ForeignKey("unidades.id"), index=True)
+    nombre: Mapped[str] = mapped_column(String(160))
+    relacion: Mapped[str] = mapped_column(String(30), default="familiar")
+    documento: Mapped[str | None] = mapped_column(String(30))
+    telefono: Mapped[str | None] = mapped_column(String(30))
+    menor_de_edad: Mapped[bool] = mapped_column(Boolean, default=False)
+    contacto_emergencia: Mapped[bool] = mapped_column(Boolean, default=False)
+    actualizado: Mapped[datetime] = mapped_column(DateTime, default=ahora, onupdate=ahora)
+
+
+class Mascota(Base):
+    __tablename__ = "censo_mascotas"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    unidad_id: Mapped[int] = mapped_column(ForeignKey("unidades.id"), index=True)
+    nombre: Mapped[str] = mapped_column(String(80))
+    especie: Mapped[str] = mapped_column(String(20), default="perro")
+    raza: Mapped[str | None] = mapped_column(String(80))
+    color: Mapped[str | None] = mapped_column(String(60))
+    vacuna_antirrabica_vence: Mapped[date | None] = mapped_column(Date)
+    potencialmente_peligrosa: Mapped[bool] = mapped_column(Boolean, default=False)
+    poliza: Mapped[str | None] = mapped_column(String(80))  # Ley 1801 de 2016: obligatoria para PPP
+    actualizado: Mapped[datetime] = mapped_column(DateTime, default=ahora, onupdate=ahora)
+
+
+class Vehiculo(Base):
+    __tablename__ = "censo_vehiculos"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    unidad_id: Mapped[int] = mapped_column(ForeignKey("unidades.id"), index=True)
+    tipo: Mapped[str] = mapped_column(String(20))
+    placa: Mapped[str | None] = mapped_column(String(12))
+    marca: Mapped[str | None] = mapped_column(String(60))
+    color: Mapped[str | None] = mapped_column(String(40))
+    actualizado: Mapped[datetime] = mapped_column(DateTime, default=ahora, onupdate=ahora)
+
+
+class CensoUnidad(Base):
+    """Cuándo confirmó cada unidad que su censo está al día."""
+    __tablename__ = "censo_confirmaciones"
+    unidad_id: Mapped[int] = mapped_column(ForeignKey("unidades.id"), primary_key=True)
+    confirmado: Mapped[datetime] = mapped_column(DateTime, default=ahora)
+    confirmado_por: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id"))
+
+
+class Parqueadero(Base):
+    __tablename__ = "parqueaderos"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    codigo: Mapped[str] = mapped_column(String(20), unique=True)
+    tipo: Mapped[str] = mapped_column(String(20), index=True)
+    ubicacion: Mapped[str | None] = mapped_column(String(80))
+    visitantes: Mapped[bool] = mapped_column(Boolean, default=False)
+    unidad_id: Mapped[int | None] = mapped_column(ForeignKey("unidades.id"), index=True)
+    vehiculo_id: Mapped[int | None] = mapped_column(ForeignKey("censo_vehiculos.id"))
+    asignado_desde: Mapped[date | None] = mapped_column(Date)
+    forma_asignacion: Mapped[str | None] = mapped_column(String(20))  # manual | sorteo
+
+    unidad: Mapped["Unidad | None"] = relationship()
+    vehiculo: Mapped["Vehiculo | None"] = relationship()

@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import CORS_ORIGINS, NOMBRE_CONJUNTO
 from .db import Base, engine
-from .routers import admin, auth, cuentas, documentos, solicitudes
+from .routers import admin, auth, comunidad, cuentas, documentos, solicitudes
 
 logging.basicConfig(level=logging.INFO)
 Base.metadata.create_all(engine)
@@ -27,7 +27,7 @@ async def cabeceras_seguridad(request, call_next):
     return resp
 
 
-for r in (auth.router, cuentas.router, solicitudes.router, documentos.router, admin.router):
+for r in (auth.router, cuentas.router, solicitudes.router, documentos.router, comunidad.router, admin.router):
     app.include_router(r)
 
 

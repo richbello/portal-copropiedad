@@ -81,10 +81,30 @@ export const NOMBRES = {
     interes_mora: 'Intereses de mora', parqueadero: 'Parqueadero', otro: 'Otro',
   },
   categorias: {
+    manual_convivencia: 'Manual de convivencia',
     acta_asamblea: 'Actas de asamblea', acta_consejo: 'Actas de consejo', presupuesto: 'Presupuesto',
     estados_financieros: 'Estados financieros', reglamento: 'Reglamento', circular: 'Circulares',
     contrato: 'Contratos', otro: 'Otros',
   },
+}
+
+Object.assign(NOMBRES, {
+  eventos: {
+    asamblea: 'Asamblea', reunion_consejo: 'Reunión de consejo', mantenimiento: 'Mantenimiento',
+    corte_servicio: 'Corte de servicio', cultural: 'Cultural', deportivo: 'Deportivo', salud: 'Salud', otro: 'Otro',
+  },
+  relaciones: {
+    propietario: 'Propietario', familiar: 'Familiar', arrendatario: 'Arrendatario',
+    empleado_domestico: 'Empleado doméstico', otro: 'Otro',
+  },
+  especies: { perro: 'Perro', gato: 'Gato', otro: 'Otra' },
+  vehiculos: { carro: 'Carro', moto: 'Moto', bicicleta: 'Bicicleta' },
+})
+
+// Abre un archivo protegido dentro de la página (por ejemplo un PDF en un iframe)
+export async function urlProtegida(path) {
+  const res = await api.get(path)
+  return URL.createObjectURL(await res.blob())
 }
 
 export const esGestion = u => ['administrador', 'contador'].includes(u?.rol)

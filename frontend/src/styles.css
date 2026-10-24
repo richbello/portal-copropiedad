@@ -219,3 +219,36 @@ tr.clic:hover td { background: var(--verde-claro); }
 @media (max-width: 860px) { .detalle-rejilla { grid-template-columns: 1fr; } }
 tfoot td { border-top: 2px solid var(--linea); border-bottom: none; }
 .rejilla > .panel + .panel { margin-top: 0; }
+
+/* ---------- Calendario ---------- */
+.calendario-rejilla { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; }
+@media (max-width: 960px) { .calendario-rejilla { grid-template-columns: 1fr; } }
+.mes { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.mes-cab { font-size: 0.82rem; color: var(--tinta-suave); text-align: center; padding: 4px 0; }
+.mes-dia {
+  background: var(--fondo); color: var(--tinta); border: 1px solid transparent; border-radius: 8px;
+  min-height: 84px; padding: 6px; display: flex; flex-direction: column; gap: 3px; align-items: stretch;
+  text-align: left; font-weight: 400; overflow: hidden;
+}
+.mes-dia.fuera { opacity: 0.45; }
+.mes-dia.hoy .mes-num { background: var(--verde); color: #fff; border-radius: 999px; padding: 0 7px; align-self: flex-start; }
+.mes-dia.sel { border-color: var(--verde); background: var(--verde-claro); }
+.mes-num { font-weight: 700; font-size: 0.9rem; }
+.chip-evento { font-size: 0.72rem; line-height: 1.25; padding: 2px 5px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+@media (max-width: 600px) {
+  .mes-dia { min-height: 48px; padding: 4px; }
+  .chip-evento { font-size: 0; height: 6px; padding: 0; }
+}
+.evento { padding: 10px 12px; border-left: 4px solid var(--linea); background: var(--fondo); border-radius: 6px; margin-bottom: 8px; }
+.cat-asamblea { background: #2b5c8a; } .cat-borde-asamblea { border-left-color: #2b5c8a; }
+.cat-reunion_consejo { background: #5a6b8c; } .cat-borde-reunion_consejo { border-left-color: #5a6b8c; }
+.cat-mantenimiento { background: #8a6d2b; } .cat-borde-mantenimiento { border-left-color: #8a6d2b; }
+.cat-corte_servicio { background: #a8322a; } .cat-borde-corte_servicio { border-left-color: #a8322a; }
+.cat-cultural { background: #7a3f8a; } .cat-borde-cultural { border-left-color: #7a3f8a; }
+.cat-deportivo { background: #1f6d4a; } .cat-borde-deportivo { border-left-color: #1f6d4a; }
+.cat-salud { background: #2b7a7a; } .cat-borde-salud { border-left-color: #2b7a7a; }
+.cat-otro { background: #5f6b66; } .cat-borde-otro { border-left-color: #5f6b66; }
+
+label.casilla { flex-direction: row; align-items: center; gap: 10px; font-weight: 400; }
+label.casilla input { width: 20px; height: 20px; }
+.visor-pdf { width: 100%; height: 78vh; border: 0; display: block; background: #fff; }

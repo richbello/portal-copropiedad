@@ -8,6 +8,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from app import models
+import demo_comunidad
 from app.config import DIAS_RESPUESTA, UPLOAD_DIR
 from app.db import Base, SessionLocal, engine
 from app.fechas import sumar_dias_habiles
@@ -221,6 +222,8 @@ def main():
         db.add(models.Documento(titulo=titulo, categoria=cat, descripcion=desc,
                                 nombre_original=f"{titulo}.pdf", ruta=ruta, publicado_por=admin.id,
                                 publicado=datetime.now() - timedelta(days=30 * (len(docs) - i))))
+
+    demo_comunidad.cargar(db, admin, unidades, propietarios)
 
     db.add(models.Notificacion(usuario_id=p0.id, titulo="Bienvenido al portal",
                                texto="Desde aquí puede consultar su estado de cuenta y radicar solicitudes.",

@@ -16,7 +16,7 @@ from ..security import auditar, requiere_rol, usuario_actual
 
 router = APIRouter(prefix="/api", tags=["Documentos y transparencia"])
 
-CATEGORIAS = ("acta_asamblea", "acta_consejo", "presupuesto", "estados_financieros",
+CATEGORIAS = ("manual_convivencia", "acta_asamblea", "acta_consejo", "presupuesto", "estados_financieros",
               "reglamento", "circular", "contrato", "otro")
 
 gestion = requiere_rol(*models.ROLES_GESTION)
@@ -30,6 +30,27 @@ def listar_documentos(categoria: str | None = None, u: models.Usuario = Depends(
         stmt = stmt.where(models.Documento.categoria == categoria)
     return [{"id": d.id, "titulo": d.titulo, "categoria": d.categoria, "descripcion": d.descripcion,
              "nombre_archivo": d.nombre_original, "publicado": d.publicado} for d in db.scalars(stmt)]
+
+
+@router.get("/manual-convivencia")
+def manual(u: models.Usuario = Depends(usuario_actual), db: Session = Depends(get_db)):
+    """Versión vigente (la más reciente) y versiones anteriores del manual de convivencia."""
+    docs = db.scalars(select(models.Documento).where(models.Documento.categoria == "manual_convivencia")
+                      .order_by(models.Documento.publicado.desc())).all()
+    if not docs:
+        return {"vigente": None, "anteriores": []}
+    f = lambda d: {"id": d.id, "titulo": d.titulo, "descripcion": d.descripcion,  # noqa: E731
+                   "nombre_archivo": d.nombre_original, "publicado": d.publicado}
+    return {"vigente": f(docs[0]), "anteriores": [f(d) for d in docs[1:]]}
+
+
+@router.get("/documentos/{did}/ver")
+def ver_en_linea(did: int, u: models.Usuario = Depends(usuario_actual), db: Session = Depends(get_db)):
+    """Igual que descargar, pero para mostrarlo dentro de la página (PDF en línea)."""
+    d = db.get(models.Documento, did)
+    if not d:
+        raise HTTPException(404, "Documento no encontrado")
+    return FileResponse(ruta_absoluta(d.ruta), filename=d.nombre_original, content_disposition_type="inline")
 
 
 @router.get("/documentos/categorias")
