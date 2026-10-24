@@ -106,6 +106,13 @@ function Admin {
     Correr (PyVenv) @('crear_admin.py', $Resto[0], $Resto[1]) $Back
 }
 
+function Conjunto {
+    # Pasa los argumentos a backend\conjunto.py: generar, cargar-unidades, plantilla-propietarios...
+    $a = @('conjunto.py')
+    if ($Resto) { $a += $Resto }
+    Correr (PyVenv) $a $Back
+}
+
 function Respaldo {
     $dest = Join-Path $Raiz 'respaldos'
     New-Item -ItemType Directory -Force -Path $dest | Out-Null
@@ -150,12 +157,20 @@ function Ayuda {
         '',
         '  .\portal.ps1 instalar      Instala dependencias y compila el frontend',
         '  .\portal.ps1 demo          Crea la base con datos de prueba (clave de todos: Demo2026*)',
-        '  .\portal.ps1 probar        Ejecuta las 15 pruebas automáticas',
+        '  .\portal.ps1 probar        Ejecuta las 18 pruebas automáticas',
         '  .\portal.ps1 iniciar       Arranca el portal en http://localhost:8000',
         '  .\portal.ps1 desarrollo    Backend con recarga + frontend Vite (para modificar código)',
         '  .\portal.ps1 compilar      Vuelve a compilar el frontend',
         '  .\portal.ps1 admin <correo> "<nombre>"   Crea el administrador real',
         '  .\portal.ps1 respaldo      Copia en .zip la base de datos y los archivos subidos',
+        '',
+        '  Conjunto real (archivos en backend\datos, que no se suben a GitHub):',
+        '  .\portal.ps1 conjunto generar --torres 9 --pisos 6 --por-piso 4',
+        '  .\portal.ps1 conjunto cargar-unidades [--confirmar]',
+        '  .\portal.ps1 conjunto plantilla-propietarios',
+        '  .\portal.ps1 conjunto cargar-propietarios [--confirmar]',
+        '  .\portal.ps1 conjunto resumen',
+        '',
         "  .\portal.ps1 api <correo> <clave> <GET|POST> <ruta> ['json']",
         '       Ejemplo: .\portal.ps1 api admin@conjunto.co Demo2026* GET /api/admin/dashboard'
     )
@@ -171,6 +186,7 @@ switch ($Comando.ToLower()) {
     'desarrollo' { Desarrollo }
     'admin'      { Admin }
     'respaldo'   { Respaldo }
+    'conjunto'   { Conjunto }
     'api'        { Api }
     default      { Ayuda }
 }

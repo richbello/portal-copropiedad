@@ -23,6 +23,12 @@ export const useSesion = () => useContext(SesionCtx)
 export default function App() {
   const [usuario, setUsuario] = useState(null)
   const [cargando, setCargando] = useState(!!getToken())
+  const [conjunto, setConjunto] = useState('Conjunto Avellana Ciudad Verde')
+
+  // El nombre viene del servidor (NOMBRE_CONJUNTO), para no repetirlo en el código
+  useEffect(() => {
+    api.get('/api/salud').then(r => { setConjunto(r.conjunto); document.title = r.conjunto }).catch(() => {})
+  }, [])
 
   const recargar = useCallback(async () => {
     if (!getToken()) { setUsuario(null); setCargando(false); return }
@@ -41,12 +47,12 @@ export default function App() {
   const salir = () => { setToken(null); setUsuario(null) }
 
   if (cargando) return <div className="vacio">Cargando…</div>
-  if (!usuario) return <Login onIngreso={ingresar} />
+  if (!usuario) return <Login onIngreso={ingresar} conjunto={conjunto} />
   if (usuario.debe_cambiar_password || !usuario.acepto_tratamiento_datos)
     return <PrimerIngreso usuario={usuario} onListo={recargar} onSalir={salir} />
 
   return (
-    <SesionCtx.Provider value={{ usuario, recargar, salir }}>
+    <SesionCtx.Provider value={{ usuario, recargar, salir, conjunto }}>
       <Marco>
         <Routes>
           <Route path="/" element={esLecturaGlobal(usuario) ? <AdminTablero /> : <Inicio />} />
@@ -69,7 +75,7 @@ export default function App() {
 }
 
 function Marco({ children }) {
-  const { usuario, salir } = useSesion()
+  const { usuario, salir, conjunto } = useSesion()
   const [abierto, setAbierto] = useState(false)
   const [sinLeer, setSinLeer] = useState(0)
   const loc = useLocation()
@@ -86,12 +92,12 @@ function Marco({ children }) {
   return (
     <div className="app">
       <div className="barra-movil">
-        <strong style={{ fontFamily: 'var(--display)' }}>Portal del conjunto</strong>
+        <strong style={{ fontFamily: 'var(--display)' }}>{conjunto}</strong>
         <button onClick={() => setAbierto(true)} aria-label="Abrir menú">Menú</button>
       </div>
       <aside className={'lateral' + (abierto ? ' abierto' : '')}>
         <div className="fila" style={{ justifyContent: 'space-between' }}>
-          <div className="marca">Portal del conjunto<small>{global ? NOMBRES.roles[usuario.rol] : unidades}</small></div>
+          <div className="marca">{conjunto}<small>{global ? NOMBRES.roles[usuario.rol] : unidades}</small></div>
           {abierto && <button className="secundario" style={{ color: '#fff', borderColor: '#fff' }} onClick={() => setAbierto(false)}>Cerrar</button>}
         </div>
         <nav className="nav">

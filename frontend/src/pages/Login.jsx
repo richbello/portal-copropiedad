@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { api } from '../api'
 
-export default function Login({ onIngreso }) {
+export default function Login({ onIngreso, conjunto }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -29,6 +29,7 @@ export default function Login({ onIngreso }) {
             </g>
           ))}
         </svg>
+        <div style={{ position: 'relative', fontFamily: 'var(--display)', fontSize: '1.15rem', opacity: 0.9 }}>{conjunto}</div>
         <h1>Su apartamento, sus cuentas y sus solicitudes en un solo lugar</h1>
         <p>Consulte su estado de cuenta, descargue su paz y salvo, radique solicitudes a la administración y revise en qué se gasta el presupuesto del conjunto.</p>
       </section>

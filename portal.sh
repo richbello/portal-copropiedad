@@ -63,6 +63,10 @@ admin() {
   (cd "$BACK" && "$PY" crear_admin.py "$1" "$2")
 }
 
+conjunto() {
+  (cd "$BACK" && "$PY" conjunto.py "$@")
+}
+
 respaldo() {
   local destino="$RAIZ/respaldos"; mkdir -p "$destino"
   local f="$destino/respaldo_$(date +%Y%m%d_%H%M%S).tar.gz"
@@ -87,12 +91,17 @@ Portal de Propietarios — comandos
 
   ./portal.sh instalar      Instala Python, dependencias y compila el frontend
   ./portal.sh demo          Crea la base con datos de prueba (clave de todos: Demo2026*)
-  ./portal.sh probar        Ejecuta las 15 pruebas automáticas
+  ./portal.sh probar        Ejecuta las 18 pruebas automáticas
   ./portal.sh iniciar       Arranca el portal completo en el puerto 8000
   ./portal.sh desarrollo    Backend con recarga + frontend Vite (para modificar código)
   ./portal.sh compilar      Vuelve a compilar el frontend
   ./portal.sh admin <correo> "<nombre>"   Crea el primer administrador real
   ./portal.sh respaldo      Copia la base de datos y los archivos subidos
+  ./portal.sh conjunto generar --torres 9 --pisos 6 --por-piso 4
+  ./portal.sh conjunto cargar-unidades [--confirmar]
+  ./portal.sh conjunto plantilla-propietarios
+  ./portal.sh conjunto cargar-propietarios [--confirmar]
+  ./portal.sh conjunto resumen
   ./portal.sh api <correo> <clave> <GET|POST> <ruta> [json]
                             Consulta la API sin abrir el navegador. Ej.:
                             ./portal.sh api admin@conjunto.co 'Demo2026*' GET /api/admin/dashboard
@@ -101,6 +110,6 @@ EOF
 
 cmd="${1:-ayuda}"; shift || true
 case "$cmd" in
-  instalar|demo|probar|compilar|iniciar|desarrollo|admin|respaldo|api|ayuda) "$cmd" "$@" ;;
+  instalar|demo|probar|compilar|iniciar|desarrollo|admin|respaldo|api|conjunto|ayuda) "$cmd" "$@" ;;
   *) rojo "Comando desconocido: $cmd"; ayuda; exit 1 ;;
 esac

@@ -90,7 +90,7 @@ La documentación interactiva de la API queda en http://localhost:8000/docs
 cd backend
 pytest -q
 ```
-15 pruebas de extremo a extremo: festivos colombianos, bloqueo de cuenta, aislamiento entre propietarios, cuadre del estado de cuenta, paz y salvo, flujo completo de solicitud, reservas cruzadas, archivos peligrosos, facturación sin duplicados, tope de intereses, importación con errores, primer ingreso, permisos del consejo y auditoría.
+18 pruebas de extremo a extremo: festivos colombianos, bloqueo de cuenta, aislamiento entre propietarios, cuadre del estado de cuenta, paz y salvo, flujo completo de solicitud, reservas cruzadas, archivos peligrosos, facturación sin duplicados, tope de intereses, importación con errores, primer ingreso, permisos del consejo, auditoría y la carga de las 216 unidades de Avellana con sus propietarios.
 
 ## Paso a producción
 
@@ -106,7 +106,36 @@ pytest -q
 5. **Copias de seguridad diarias** de la base de datos y de la carpeta `uploads`.
 6. No ejecute `seed.py` en producción: borra la base de datos. Cree el primer administrador con `python crear_admin.py`.
 
-## Cargar un conjunto real
+## Cargar el Conjunto Avellana Ciudad Verde (o cualquier conjunto real)
+
+Todo desde la terminal. Los archivos quedan en `backend\datos\`, carpeta que **no se sube a GitHub** porque contiene datos personales. En Linux use `./portal.sh` en lugar de `.\portal.ps1`.
+
+```powershell
+# 0. Base vacía (sin datos demo) y administrador real
+Remove-Item backend\copropiedad.db -ErrorAction SilentlyContinue
+.\portal.ps1 admin correo@dominio.co "Nombre del administrador"
+
+# 1. Unidades: 9 torres x 6 pisos x 4 aptos = 216 (101 a 604 en cada torre)
+.\portal.ps1 conjunto generar --torres 9 --pisos 6 --por-piso 4
+#    Abra backend\datos\unidades.csv en Excel y ponga los coeficientes y áreas del reglamento.
+.\portal.ps1 conjunto cargar-unidades              # revisa: deben sumar 100 %
+.\portal.ps1 conjunto cargar-unidades --confirmar  # guarda
+
+# 2. Propietarios
+.\portal.ps1 conjunto plantilla-propietarios
+#    Llene nombre y correo en backend\datos\propietarios.csv (Excel).
+.\portal.ps1 conjunto cargar-propietarios              # revisa
+.\portal.ps1 conjunto cargar-propietarios --confirmar  # crea usuarios y claves temporales
+
+.\portal.ps1 conjunto resumen
+```
+
+- Un mismo correo en varias filas es una persona con varias unidades.
+- Para un arrendatario, repita la fila de la unidad con `relacion` = `residente`.
+- Las claves temporales quedan en `backend\datos\claves_temporales_<fecha>.csv`. Entréguelas en privado y borre el archivo.
+- Volver a cargar el mismo archivo no duplica usuarios: solo agrega lo nuevo.
+
+## Cargar un conjunto real desde la interfaz
 
 1. Cree el administrador con `crear_admin.py`.
 2. En la API (`/docs`) o con un script, cree las unidades con su torre, número y coeficiente (deben sumar 100%).

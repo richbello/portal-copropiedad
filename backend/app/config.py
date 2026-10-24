@@ -31,7 +31,7 @@ MINUTOS_BLOQUEO = 15
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
 # Datos de la copropiedad (aparecen en PDFs)
-NOMBRE_CONJUNTO = os.getenv("NOMBRE_CONJUNTO", "Conjunto Residencial Demo P.H.")
+NOMBRE_CONJUNTO = os.getenv("NOMBRE_CONJUNTO", "Conjunto Avellana Ciudad Verde")
 NIT_CONJUNTO = os.getenv("NIT_CONJUNTO", "900.000.000-0")
 
 # Días hábiles de respuesta por tipo de solicitud (Ley 1755 de 2015 para peticiones)
