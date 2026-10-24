@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: copropiedad
+      POSTGRES_USER: copropiedad
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-cambiar-esta-clave}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  app:
+    build: .
+    depends_on: [db]
+    env_file: backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://copropiedad:${DB_PASSWORD:-cambiar-esta-clave}@db:5432/copropiedad
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:
