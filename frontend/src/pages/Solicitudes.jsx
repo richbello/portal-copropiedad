@@ -31,7 +31,7 @@ export default function Solicitudes() {
         {puedeRadicar && <Link className="boton" to="/solicitudes/nueva">Radicar una solicitud</Link>}
       </Encabezado>
       <div className="panel">
-        <div className="formulario-2" style={{ marginBottom: 16 }}>
+        <div className="formulario-2 filtros" style={{ marginBottom: 16 }}>
           <label>Buscar<input value={q} onChange={e => setQ(e.target.value)} placeholder="Asunto o radicado" /></label>
           <label>Estado
             <select value={estado} onChange={e => setEstado(e.target.value)}>
@@ -50,12 +50,11 @@ export default function Solicitudes() {
         {datos && datos.length === 0 && <p className="vacio">No hay solicitudes con esos filtros.</p>}
         {datos && datos.length > 0 &&
           <div className="tabla-scroll"><table>
-            <thead><tr><th>Radicado</th><th>Asunto</th><th>Estado</th><th>Plazo de respuesta</th><th>Radicada</th></tr></thead>
+            <thead><tr><th>Asunto</th><th>Estado</th><th>Plazo de respuesta</th><th>Radicada</th></tr></thead>
             <tbody>{datos.map(s => (
               <tr key={s.id} className="clic" onClick={() => nav(`/solicitudes/${s.id}`)}>
-                <td className="num" style={{ whiteSpace: 'nowrap' }}>{s.radicado}</td>
                 <td><strong>{s.asunto}</strong>
-                  <div className="peq suave">{NOMBRES.tipos[s.tipo]}{s.unidad && ` · ${s.unidad}`}{usuario.rol !== 'propietario' && ` · ${s.solicitante}`}</div></td>
+                  <div className="peq suave"><span className="num">{s.radicado}</span> · {NOMBRES.tipos[s.tipo]}{s.unidad && ` · ${s.unidad}`}{usuario.rol !== 'propietario' && ` · ${s.solicitante}`}</div></td>
                 <td><span className={`estado ${s.estado}`}>{NOMBRES.estados[s.estado]}</span></td>
                 <td><Semaforo s={s} /><div className="peq suave">Límite {fecha(s.fecha_limite)}</div></td>
                 <td style={{ whiteSpace: 'nowrap' }}>{fecha(s.fecha_radicado)}</td>

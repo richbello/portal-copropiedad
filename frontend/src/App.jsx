@@ -101,16 +101,28 @@ function Marco({ children }) {
   const gestion = esGestion(usuario)
   const unidades = usuario.unidades.map(u => u.etiqueta).join(', ')
 
+  // Accesos de la barra inferior en el celular: lo que más se usa según el rol
+  const atajos = global
+    ? [['/', 'Tablero', 'inicio'], ['/solicitudes', 'Solicitudes', 'solicitudes'], ['/admin/censo', 'Censo', 'unidad'], ['/calendario', 'Calendario', 'calendario']]
+    : [['/', 'Inicio', 'inicio'], ['/mi-unidad', 'Mi unidad', 'unidad'], ['/calendario', 'Calendario', 'calendario'], ['/solicitudes', 'Solicitudes', 'solicitudes']]
+
   return (
     <div className="app">
-      <div className="barra-movil">
-        <strong style={{ fontFamily: 'var(--display)' }}>{conjunto}</strong>
-        <button onClick={() => setAbierto(true)} aria-label="Abrir menú">Menú</button>
-      </div>
+      <header className="barra-movil">
+        <strong className="barra-movil-nombre">{conjunto}</strong>
+        <NavLink to="/notificaciones" className="campana" aria-label={`Notificaciones${sinLeer ? `, ${sinLeer} sin leer` : ''}`}>
+          <Icono n="campana" />{sinLeer > 0 && <span className="punto">{sinLeer}</span>}
+        </NavLink>
+      </header>
+      <nav className="barra-inferior" aria-label="Navegación principal">
+        {atajos.map(([to, txt, ic]) => <NavLink key={to} to={to} end={to === '/'}><Icono n={ic} /><span>{txt}</span></NavLink>)}
+        <button className={abierto ? 'activa' : ''} onClick={() => setAbierto(true)} aria-label="Más opciones"><Icono n="menu" /><span>Más</span></button>
+      </nav>
+      {abierto && <div className="velo" onClick={() => setAbierto(false)} aria-hidden="true" />}
       <aside className={'lateral' + (abierto ? ' abierto' : '')}>
-        <div className="fila" style={{ justifyContent: 'space-between' }}>
+        <div className="fila" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
           <div className="marca">{conjunto}<small>{global ? NOMBRES.roles[usuario.rol] : unidades}</small></div>
-          {abierto && <button className="secundario" style={{ color: '#fff', borderColor: '#fff' }} onClick={() => setAbierto(false)}>Cerrar</button>}
+          {abierto && <button className="cerrar-menu" onClick={() => setAbierto(false)} aria-label="Cerrar menú"><Icono n="cerrar" /></button>}
         </div>
         <nav className="nav">
           <NavLink to="/" end>{global ? 'Tablero' : 'Inicio'}</NavLink>
@@ -142,6 +154,20 @@ function Marco({ children }) {
       <main className="contenido">{children}</main>
     </div>
   )
+}
+
+const TRAZOS = {
+  inicio: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  unidad: 'M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M2 21h20M8 8h3M8 12h3M8 16h3',
+  calendario: 'M4 6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM4 10h16M8 3v4M16 3v4',
+  solicitudes: 'M4 5h16v11H9l-5 4z',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  campana: 'M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 21h4',
+  cerrar: 'M6 6l12 12M18 6L6 18',
+}
+export function Icono({ n }) {
+  return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={TRAZOS[n]} /></svg>
 }
 
 export function Encabezado({ titulo, descripcion, children }) {

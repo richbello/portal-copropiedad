@@ -1,0 +1,16 @@
+{
+  "name": "Conjunto Avellana Ciudad Verde",
+  "short_name": "Avellana",
+  "description": "Portal de propietarios y residentes",
+  "lang": "es-CO",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#e8edeb",
+  "theme_color": "#1f4d3a",
+  "icons": [
+    { "src": "/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

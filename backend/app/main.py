@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -14,6 +15,7 @@ from .routers import admin, auth, clasificados, comunidad, cuentas, documentos, 
 from .vencimientos import iniciar_revision_periodica
 
 logging.basicConfig(level=logging.INFO)
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 _nuevas = actualizar_esquema()
 if _nuevas:
     logging.getLogger("portal").info("Base de datos actualizada, columnas nuevas: %s", ", ".join(_nuevas))
