@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal de Propietarios — Conjunto Avellana Ciudad Verde</title>
+<meta name="description" content="Portal web para propietarios y administración de propiedad horizontal: estado de cuenta, paz y salvo, solicitudes, presupuesto y comunidad.">
+<link rel="icon" href="icono.png">
+<style>
+  :root { --verde:#1f4d3a; --verde2:#2e6b52; --claro:#eef5f1; --tinta:#1d2a24; --gris:#5b6b63; --borde:#d7e4dc; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--tinta); background:#fff; line-height:1.55; }
+  a { color:inherit; }
+  .ancho { max-width:1080px; margin:0 auto; padding:0 22px; }
+  header { background:var(--verde); color:#fff; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:16px 0; }
+  .marca { display:flex; align-items:center; gap:10px; font-weight:700; text-decoration:none; }
+  .marca img { width:34px; height:34px; border-radius:8px; background:#fff; }
+  .btn { display:inline-block; padding:12px 22px; border-radius:10px; font-weight:600; text-decoration:none; transition:transform .15s, box-shadow .15s; }
+  .btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.15); }
+  .btn-blanco { background:#fff; color:var(--verde); }
+  .btn-borde { border:1.5px solid rgba(255,255,255,.7); color:#fff; }
+  .btn-verde { background:var(--verde); color:#fff; }
+  .hero { padding:56px 0 72px; display:grid; grid-template-columns:1.2fr 1fr; gap:40px; align-items:center; }
+  .hero h1 { font-size:clamp(30px,4.4vw,46px); line-height:1.12; margin:0 0 16px; }
+  .hero p { font-size:18px; opacity:.92; margin:0 0 26px; }
+  .acciones { display:flex; gap:12px; flex-wrap:wrap; }
+  .tarjeta-demo { background:#fff; color:var(--tinta); border-radius:16px; padding:22px; box-shadow:0 20px 50px rgba(0,0,0,.25); }
+  .tarjeta-demo h3 { margin:0 0 4px; font-size:15px; color:var(--gris); font-weight:600; }
+  .saldo { font-size:30px; font-weight:800; color:var(--verde); margin-bottom:14px; }
+  .fila { display:flex; justify-content:space-between; padding:9px 0; border-top:1px solid var(--borde); font-size:14px; }
+  .ok { color:#2e7d4f; font-weight:600; }
+  .pend { color:#a8322a; font-weight:600; }
+  section { padding:64px 0; }
+  .titulo { text-align:center; max-width:640px; margin:0 auto 36px; }
+  .titulo h2 { font-size:30px; margin:0 0 10px; }
+  .titulo p { color:var(--gris); margin:0; }
+  .grilla { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
+  .mod { border:1px solid var(--borde); border-radius:14px; padding:20px; background:#fff; }
+  .mod .ico { font-size:24px; margin-bottom:6px; }
+  .mod h3 { margin:0 0 6px; font-size:17px; }
+  .mod p { margin:0; color:var(--gris); font-size:14.5px; }
+  .fondo { background:var(--claro); }
+  .dos { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  .lista { list-style:none; padding:0; margin:0; }
+  .lista li { padding:10px 0 10px 30px; position:relative; border-bottom:1px solid var(--borde); }
+  .lista li::before { content:"✓"; position:absolute; left:4px; color:var(--verde2); font-weight:800; }
+  .cta { text-align:center; background:var(--verde); color:#fff; border-radius:18px; padding:44px 22px; }
+  .cta h2 { margin:0 0 10px; font-size:28px; }
+  .cta p { margin:0 0 22px; opacity:.9; }
+  footer { padding:28px 0 40px; color:var(--gris); font-size:14px; text-align:center; }
+  @media (max-width:820px) { .hero, .dos { grid-template-columns:1fr; } .hero { padding:36px 0 52px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="ancho">
+    <nav>
+      <a class="marca" href="#"><img src="icono.png" alt="">Portal de Propietarios</a>
+      <a class="btn btn-blanco" href="https://portal-avellana.onrender.com">Ingresar</a>
+    </nav>
+    <div class="hero">
+      <div>
+        <h1>Su conjunto, en orden y a la vista de todos</h1>
+        <p>El Conjunto Avellana Ciudad Verde tiene su propio portal: cada propietario consulta su estado de cuenta, descarga su paz y salvo y radica solicitudes. La administración factura, controla la cartera y responde a tiempo, desde el computador o el celular.</p>
+        <div class="acciones">
+          <a class="btn btn-blanco" href="https://portal-avellana.onrender.com">Ingresar al portal</a>
+          <a class="btn btn-borde" href="#modulos">Ver qué incluye</a>
+        </div>
+      </div>
+      <div class="tarjeta-demo" aria-label="Ejemplo de estado de cuenta">
+        <h3>Torre 5 · Apto 501 — Estado de cuenta</h3>
+        <div class="saldo">$ 0 <span style="font-size:15px;font-weight:600;color:#2e7d4f">al día</span></div>
+        <div class="fila"><span>Cuota de administración — octubre</span><span class="ok">Pagada</span></div>
+        <div class="fila"><span>Paz y salvo</span><span class="ok">Descargar PDF</span></div>
+        <div class="fila"><span>Derecho de petición radicado</span><span class="pend">Responde en 15 días</span></div>
+        <div class="fila"><span>SOAT del vehículo</span><span class="pend">Vence en 20 días</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="modulos">
+  <div class="ancho">
+    <div class="titulo">
+      <h2>Para los propietarios</h2>
+      <p>Cada uno entra con su usuario y contraseña y solo ve la información de su unidad.</p>
+    </div>
+    <div class="grilla">
+      <div class="mod"><div class="ico">📄</div><h3>Estado de cuenta</h3><p>Cuotas, pagos, saldos e intereses de mora, mes a mes.</p></div>
+      <div class="mod"><div class="ico">✅</div><h3>Paz y salvo y recibos</h3><p>Se descargan en PDF, sin ir a la oficina de la administración.</p></div>
+      <div class="mod"><div class="ico">📨</div><h3>Solicitudes con plazos</h3><p>Derechos de petición, daños, reservas y certificados. El portal cuenta los días hábiles de respuesta (Ley 1755 de 2015).</p></div>
+      <div class="mod"><div class="ico">📊</div><h3>Presupuesto</h3><p>En qué se gasta la cuota de administración, de forma clara.</p></div>
+      <div class="mod"><div class="ico">📁</div><h3>Documentos y calendario</h3><p>Actas, reglamento, asambleas y eventos del conjunto en un solo lugar.</p></div>
+      <div class="mod"><div class="ico">🚗</div><h3>Vehículos y avisos</h3><p>Alertas de vencimiento del SOAT y la tecnomecánica.</p></div>
+      <div class="mod"><div class="ico">🛒</div><h3>Clasificados entre vecinos</h3><p>Negocios y anuncios de la comunidad.</p></div>
+      <div class="mod"><div class="ico">📱</div><h3>Se instala como app</h3><p>Funciona en el celular y en la tablet, y se agrega a la pantalla de inicio.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="fondo">
+  <div class="ancho dos">
+    <div>
+      <h2 style="font-size:28px;margin-top:0">Para la administración</h2>
+      <p style="color:var(--gris)">Un tablero para gestionar el conjunto completo: 9 torres y 216 unidades.</p>
+      <a class="btn btn-verde" href="https://portal-avellana.onrender.com" style="margin-top:8px">Entrar como administrador</a>
+    </div>
+    <ul class="lista">
+      <li>Facturación masiva por coeficiente de copropiedad</li>
+      <li>Registro de pagos y gestión de cartera con intereses de mora</li>
+      <li>Respuesta y seguimiento de solicitudes con fechas límite</li>
+      <li>Censo de residentes, usuarios y parqueaderos</li>
+      <li>Tablero con indicadores del conjunto</li>
+      <li>Carga de unidades y propietarios desde Excel</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="ancho">
+    <div class="cta">
+      <h2>¿Administra otro conjunto?</h2>
+      <p>El portal se configura para cualquier propiedad horizontal, con sus torres, unidades y coeficientes.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="ancho">Portal de Propietarios · Conjunto Avellana Ciudad Verde · Soacha, Cundinamarca</div>
+</footer>
+</body>
+</html>

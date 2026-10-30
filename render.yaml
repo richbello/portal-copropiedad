@@ -1,0 +1,37 @@
+# Blueprint de Render: portal + base PostgreSQL + disco para archivos subidos.
+# En Render: New > Blueprint > repo richbello/portal-copropiedad > Apply.
+services:
+  - type: web
+    name: portal-avellana
+    runtime: docker
+    plan: starter            # plan pago básico: no se duerme y permite disco persistente
+    region: oregon
+    branch: main
+    autoDeploy: true         # cada git push a main redespliega solo
+    healthCheckPath: /api/salud
+    disk:
+      name: archivos
+      mountPath: /data       # UPLOAD_DIR=/data/uploads (definido en el Dockerfile)
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: portal-avellana-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: NOMBRE_CONJUNTO
+        value: Conjunto Avellana Ciudad Verde
+      - key: NIT_CONJUNTO
+        value: 900.000.000-0
+      - key: CORS_ORIGINS
+        value: https://portal-avellana.onrender.com
+      - key: TOKEN_MINUTOS
+        value: "480"
+
+databases:
+  - name: portal-avellana-db
+    plan: basic-256mb
+    region: oregon
+    databaseName: copropiedad
+    user: copropiedad

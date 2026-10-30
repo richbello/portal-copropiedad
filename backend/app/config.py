@@ -15,6 +15,11 @@ if _env.exists():
                 os.environ.setdefault(_k.strip(), _v.strip())
 
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'copropiedad.db'}")
+# Render y otros proveedores entregan "postgres://..." o "postgresql://..."; SQLAlchemy necesita el driver psycopg
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len("postgres://"):]
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len("postgresql://"):]
 SECRET_KEY = os.getenv("SECRET_KEY", "CAMBIAR-ESTA-CLAVE-EN-PRODUCCION")
 JWT_ALGORITHM = "HS256"
 TOKEN_MINUTOS = int(os.getenv("TOKEN_MINUTOS", "480"))

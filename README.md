@@ -17,6 +17,25 @@ Set-ExecutionPolicy -Scope Process Bypass   # una vez por ventana
 ```
 En Linux, Mac o Codespaces use `./portal.sh` con los mismos comandos.
 
+
+## Publicar en internet (Render)
+
+El repositorio incluye `render.yaml`, que crea el portal, la base PostgreSQL y un disco para los archivos subidos.
+
+1. En [Render](https://dashboard.render.com): **New → Blueprint**, elija `richbello/portal-copropiedad` y pulse **Apply**. Esto se hace una sola vez.
+2. Cuando termine, el portal queda en `https://portal-avellana.onrender.com`.
+3. Desde PowerShell, cree el administrador y cargue el conjunto contra la base de Render. La *External Database URL* está en Render, en la base `portal-avellana-db`, sección **Connect**:
+
+```powershell
+.\portal.ps1 nube conectar "postgresql://...render.com/copropiedad"
+.\portal.ps1 nube admin admin@avellana.co "Nombre del Administrador"
+.\portal.ps1 nube conjunto cargar-unidades --confirmar
+```
+
+4. Para publicar cambios: `.\portal.ps1 publicar "qué cambió"`. Corre las pruebas, sube el código a GitHub y Render redespliega solo.
+
+La carpeta `docs/` es la página de presentación que publica GitHub Pages en https://richbello.github.io/portal-copropiedad/.
+
 ## Arrancar manualmente
 
 Requisitos: Python 3.11+ y Node 18+.

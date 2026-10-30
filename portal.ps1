@@ -169,6 +169,48 @@ function Api {
     }
 }
 
+function Nube {
+    # Ejecuta 'admin' o 'conjunto' contra la base de datos de Render desde este computador.
+    $archivo = Join-Path $Back '.nube'
+    if (-not $Resto -or $Resto.Count -lt 1) { Falla 'Uso: .\portal.ps1 nube conectar "<External Database URL>"  |  nube admin ...  |  nube conjunto ...' }
+    $sub = $Resto[0]
+    $resto2 = @()
+    if ($Resto.Count -gt 1) { $resto2 = $Resto[1..($Resto.Count - 1)] }
+    if ($sub -eq 'conectar') {
+        if ($resto2.Count -lt 1) { Falla 'Uso: .\portal.ps1 nube conectar "<External Database URL de Render>"' }
+        Set-Content -Path $archivo -Value $resto2[0] -Encoding ascii -NoNewline
+        Ok 'Conexión guardada en backend\.nube (no se sube a GitHub).'
+        return
+    }
+    if (-not (Test-Path $archivo)) { Falla 'Primero: .\portal.ps1 nube conectar "<External Database URL de Render>"' }
+    $env:DATABASE_URL = (Get-Content $archivo -Raw).Trim()
+    switch ($sub) {
+        'admin'    { $script:Resto = $resto2; Admin }
+        'conjunto' { $script:Resto = $resto2; Conjunto }
+        default    { Falla "Subcomando desconocido: $sub (use admin o conjunto)" }
+    }
+}
+
+function Publicar {
+    # Corre las pruebas, guarda los cambios y los sube a GitHub. Render redespliega solo.
+    $git = Get-Command git -ErrorAction SilentlyContinue
+    if (-not $git) { Falla "No encontré git. Instálelo con:`n  winget install Git.Git" }
+    Probar
+    $msg = 'Actualización del portal'
+    if ($Resto -and $Resto.Count -gt 0) { $msg = $Resto -join ' ' }
+    Push-Location $Raiz
+    try {
+        git add -A
+        git diff --cached --quiet
+        if ($LASTEXITCODE -ne 0) { git commit -m $msg; if ($LASTEXITCODE -ne 0) { Falla 'Falló el commit' } }
+        git pull --rebase origin main
+        if ($LASTEXITCODE -ne 0) { Falla 'Falló git pull (resuelva el conflicto y repita)' }
+        git push origin main
+        if ($LASTEXITCODE -ne 0) { Falla 'Falló git push' }
+    } finally { Pop-Location }
+    Ok 'Subido a GitHub. Render lo despliega en 3-5 minutos.'
+}
+
 function Ayuda {
     $lineas = @(
         'Portal de Propietarios - comandos (PowerShell)',
@@ -182,6 +224,12 @@ function Ayuda {
         '  .\portal.ps1 compilar      Vuelve a compilar el frontend',
         '  .\portal.ps1 admin <correo> "<nombre>"   Crea el administrador real',
         '  .\portal.ps1 respaldo      Copia en .zip la base de datos y los archivos subidos',
+        '',
+        '  En internet (Render):',
+        '  .\portal.ps1 publicar "mensaje"     Prueba, sube a GitHub y Render redespliega solo',
+        '  .\portal.ps1 nube conectar "<External Database URL>"   Guarda la conexión a la base de Render',
+        '  .\portal.ps1 nube admin <correo> "<nombre>"            Crea el administrador en Render',
+        '  .\portal.ps1 nube conjunto cargar-unidades --confirmar  (y demás comandos de conjunto)',
         '',
         '  Conjunto real (archivos en backend\datos, que no se suben a GitHub):',
         '  .\portal.ps1 conjunto generar --torres 9 --pisos 6 --por-piso 4',
@@ -209,5 +257,7 @@ switch ($Comando.ToLower()) {
     'respaldo'   { Respaldo }
     'conjunto'   { Conjunto }
     'api'        { Api }
+    'nube'       { Nube }
+    'publicar'   { Publicar }
     default      { Ayuda }
 }

@@ -13,4 +13,5 @@ COPY backend/ .
 COPY --from=frontend /src/dist /app/frontend/dist
 ENV UPLOAD_DIR=/data/uploads
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+# Render (y otros) indican el puerto en $PORT; en Docker local se usa 8000
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]

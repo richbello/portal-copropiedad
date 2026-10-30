@@ -8,3 +8,4 @@ backend/.env
 .pytest_cache/
 respaldos/
 backend/datos/
+backend/.nube
