@@ -334,10 +334,7 @@ def _filas_censo(db: Session) -> list[dict]:
             "bicicletas": sum(v.tipo == "bicicleta" for v in vs),
             "alertas": ([f"{m.nombre}: sin póliza (PPP)" for m in ms if m.potencialmente_peligrosa and not m.poliza]
                         + [f"{m.nombre}: vacuna vencida" for m in ms
-                           if m.vacuna_antirrabica_vence and m.vacuna_antirrabica_vence < date.today()]
-                        + [f"{v.placa}: SOAT vencido" for v in vs if v.soat_vence and v.soat_vence < date.today()]
-                        + [f"{v.placa}: tecnomecánica vencida" for v in vs
-                           if v.tecnomecanica_vence and v.tecnomecanica_vence < date.today()]),
+                           if m.vacuna_antirrabica_vence and m.vacuna_antirrabica_vence < date.today()]),
             "confirmado": conf.get(un.id), "vigente": _vigente(conf.get(un.id)),
         })
     return filas
@@ -361,6 +358,26 @@ def resumen_censo(u: models.Usuario = Depends(lectura), db: Session = Depends(ge
 @router.get("/censo/unidades")
 def censo_por_unidad(u: models.Usuario = Depends(solo_admin), db: Session = Depends(get_db)):
     return _filas_censo(db)
+
+
+@router.get("/censo/mascotas")
+def censo_mascotas(u: models.Usuario = Depends(solo_admin), db: Session = Depends(get_db)):
+    """Listado de mascotas del conjunto con el estado de vacuna y póliza."""
+    unidades = {x.id: x for x in db.scalars(select(models.Unidad))}
+    hoy = date.today()
+    filas = []
+    for m in db.scalars(select(models.Mascota)):
+        un = unidades.get(m.unidad_id)
+        vac = m.vacuna_antirrabica_vence
+        filas.append({
+            "id": m.id, "unidad_id": m.unidad_id, "unidad": un.etiqueta if un else "", "torre": un.torre if un else "",
+            "nombre": m.nombre, "especie": m.especie, "raza": m.raza, "color": m.color,
+            "vacuna_vence": vac, "vacuna_al_dia": bool(vac and vac >= hoy),
+            "potencialmente_peligrosa": m.potencialmente_peligrosa, "poliza": m.poliza,
+        })
+    orden = lambda t: int(t) if str(t).isdigit() else 0  # noqa: E731
+    filas.sort(key=lambda f: (orden(f["torre"]), f["unidad"], f["nombre"]))
+    return filas
 
 
 @router.get("/censo/exportar.csv")

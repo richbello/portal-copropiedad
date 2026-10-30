@@ -21,6 +21,7 @@ import MiUnidad from './pages/MiUnidad'
 import Manual from './pages/Manual'
 import AdminCenso from './pages/AdminCenso'
 import AdminParqueaderos from './pages/AdminParqueaderos'
+import AdminVencimientos from './pages/AdminVencimientos'
 import Clasificados from './pages/Clasificados'
 
 const SesionCtx = createContext(null)
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="/clasificados" element={<Clasificados />} />
           {esLecturaGlobal(usuario) && <Route path="/admin/censo" element={<AdminCenso />} />}
           {esLecturaGlobal(usuario) && <Route path="/admin/parqueaderos" element={<AdminParqueaderos />} />}
+          {usuario.rol === 'administrador' && <Route path="/admin/vencimientos" element={<AdminVencimientos />} />}
           {esLecturaGlobal(usuario) && <Route path="/admin/cartera" element={<AdminCartera />} />}
           {esGestion(usuario) && <Route path="/admin/facturacion" element={<AdminFacturacion />} />}
           {esGestion(usuario) && <Route path="/admin/usuarios" element={<AdminUsuarios />} />}
@@ -140,6 +142,7 @@ function Marco({ children }) {
             <NavLink to="/admin/cartera">Cartera</NavLink>
             <NavLink to="/admin/censo">Censo</NavLink>
             <NavLink to="/admin/parqueaderos">Parqueaderos</NavLink>
+            {usuario.rol === 'administrador' && <NavLink to="/admin/vencimientos">Vencimientos</NavLink>}
             {gestion && <NavLink to="/admin/facturacion">Facturación y pagos</NavLink>}
             {gestion && <NavLink to="/admin/usuarios">Propietarios y usuarios</NavLink>}
             <NavLink to="/admin/configuracion">Configuración y auditoría</NavLink>
