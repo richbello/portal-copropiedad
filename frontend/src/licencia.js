@@ -22,6 +22,10 @@ export function licenciaDelEnlace() {
   } catch { return null }
 }
 
+export function licenciaEnEnlace() {
+  try { return new URLSearchParams(window.location.search).has('licencia') } catch { return false }
+}
+
 // Lee (sin validar: eso lo hace el servidor) el conjunto y la fecha que trae el código, para mostrarlos
 export function leerCodigo(codigo) {
   try {

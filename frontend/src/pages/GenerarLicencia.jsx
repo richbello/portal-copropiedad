@@ -3,12 +3,15 @@ import { api } from '../api'
 import { enlaceWhatsApp, fechaCorta } from '../licencia'
 
 // Página interna para crear licencias de prueba (protegida con la CLAVE_MAESTRA del servidor).
-export default function GenerarLicencia({ salud }) {
+export default function GenerarLicencia({ salud, conjunto: portal }) {
   const [clave, setClave] = useState(() => { try { return sessionStorage.getItem('clave_maestra') || '' } catch { return '' } })
   const [conjunto, setConjunto] = useState('')
   const [contacto, setContacto] = useState('')
   const [telefono, setTelefono] = useState('')
-  const [dias, setDias] = useState(salud?.dias_licencia || 15)
+  const [vence, setVence] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() + (salud?.dias_licencia || 15))
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
   const [lic, setLic] = useState(null)
   const [error, setError] = useState('')
   const [copiado, setCopiado] = useState(false)
@@ -17,14 +20,17 @@ export default function GenerarLicencia({ salud }) {
     e.preventDefault()
     setError(''); setLic(null); setCopiado(false)
     try {
-      const r = await api.post('/api/auth/licencia/generar', { clave_maestra: clave, conjunto, contacto, dias: Number(dias) })
+      const r = await api.post('/api/auth/licencia/generar', { clave_maestra: clave, conjunto, contacto, vence })
       try { sessionStorage.setItem('clave_maestra', clave) } catch { /* sin storage */ }
       setLic(r)
     } catch (err) { setError(err.message) }
   }
 
-  const mensaje = lic && `Hola${contacto ? ' ' + contacto.split(' ')[0] : ''}, le comparto su licencia de prueba del portal de copropiedad de Verde360 para ${lic.conjunto}. ` +
-    `Puede entrar como administración y como propietario hasta el ${fechaCorta(lic.vence)}:\n${lic.enlace}\n\nLos datos son ficticios; pruebe con confianza. Quedo atento a sus preguntas.`
+  const mensaje = lic && `Hola${contacto ? ' ' + contacto.split(' ')[0] : ''}, le comparto su licencia de prueba del portal de copropiedad de Verde360 (${lic.conjunto}).\n\n` +
+    `1) Portal del conjunto (${portal}): puede entrar como administración y como propietario hasta el ${fechaCorta(lic.vence)}:\n${lic.enlace}\n\n` +
+    (salud?.verde360 ? `2) Verde360, la plataforma de Ciudad Verde:\n${salud.verde360}\n\n` : '') +
+    (salud?.solo_consulta ? 'La licencia es de solo consulta y los datos son de ejemplo. ' : 'Los datos son ficticios; pruebe con confianza. ') + 'Quedo atento a sus preguntas.'
+
 
   async function copiar() {
     try { await navigator.clipboard.writeText(mensaje); setCopiado(true) } catch { setCopiado(false) }
@@ -38,7 +44,7 @@ export default function GenerarLicencia({ salud }) {
       <section className="ingreso-arte">
         <div style={{ position: 'relative', fontFamily: 'var(--display)', fontSize: '1.15rem', opacity: 0.9 }}>Verde360 · uso interno</div>
         <h1>Licencias de prueba para administradores</h1>
-        <p>Cada licencia da acceso al portal de demostración como administración y como propietario hasta la fecha que elija. Vence sola; no hay que borrar nada.</p>
+        <p>Cada licencia da acceso a {portal} como administración y como propietario hasta la fecha que elija{salud?.solo_consulta ? ', en solo consulta' : ''}. Vence sola; no hay que borrar nada.</p>
       </section>
       <section className="ingreso-form">
         <form className="panel formulario" onSubmit={generar}>
@@ -46,7 +52,7 @@ export default function GenerarLicencia({ salud }) {
           <label>Clave maestra
             <input type="password" required value={clave} onChange={e => setClave(e.target.value)} autoComplete="off" />
           </label>
-          <label>Conjunto
+          <label>Para quién (conjunto o grupo)
             <input required value={conjunto} onChange={e => setConjunto(e.target.value)} placeholder="Ej.: Conjunto Azalea Ciudad Verde" />
           </label>
           <label>Nombre del administrador (opcional)
@@ -55,10 +61,8 @@ export default function GenerarLicencia({ salud }) {
           <label>Celular para enviarla por WhatsApp (opcional)
             <input inputMode="tel" value={telefono} onChange={e => setTelefono(e.target.value)} placeholder="3001234567" />
           </label>
-          <label>Días de prueba
-            <select value={dias} onChange={e => setDias(e.target.value)}>
-              {[7, 15, 30, 45, 60].map(d => <option key={d} value={d}>{d} días</option>)}
-            </select>
+          <label>Vence el (incluido, hasta las 11:59 p. m.)
+            <input type="date" required value={vence} onChange={e => setVence(e.target.value)} />
           </label>
           {error && <div className="aviso error" role="alert">{error}</div>}
           <button>Generar licencia</button>

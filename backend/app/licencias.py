@@ -8,11 +8,20 @@ import base64
 import hashlib
 import hmac
 import json
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from .config import SECRET_KEY
 
+# Usuarios que usa una licencia: primero los de la demostración; si no existen, unos propios de prueba
 PERFILES = {"administrador": "admin@conjunto.co", "propietario": "propietario@conjunto.co"}
+PERFILES_PRUEBA = {"administrador": "prueba.admin@verde360.co", "propietario": "prueba.propietario@verde360.co"}
+PROTEGIDOS = set(PERFILES.values()) | set(PERFILES_PRUEBA.values())
+
+COLOMBIA = timezone(timedelta(hours=-5))  # Colombia no tiene horario de verano
+
+
+def hoy() -> date:
+    return datetime.now(COLOMBIA).date()
 
 
 def _b64(b: bytes) -> str:
@@ -27,8 +36,8 @@ def _firma(cuerpo: str) -> str:
     return _b64(hmac.new(SECRET_KEY.encode(), b"licencia:" + cuerpo.encode(), hashlib.sha256).digest()[:12])
 
 
-def generar(conjunto: str, dias: int, contacto: str = "") -> dict:
-    vence = date.today() + timedelta(days=dias)
+def generar(conjunto: str, dias: int = 15, contacto: str = "", vence: date | None = None) -> dict:
+    vence = vence or hoy() + timedelta(days=dias)
     datos = {"c": conjunto.strip()[:80], "v": vence.isoformat(), "k": contacto.strip()[:80]}
     cuerpo = _b64(json.dumps(datos, ensure_ascii=False, separators=(",", ":")).encode())
     return {"codigo": f"{cuerpo}.{_firma(cuerpo)}", "conjunto": datos["c"], "vence": datos["v"]}
@@ -48,11 +57,12 @@ def verificar(codigo: str) -> dict:
         raise LicenciaInvalida("El código de licencia no es válido")
     datos = json.loads(_unb64(cuerpo))
     vence = date.fromisoformat(datos["v"])
-    if vence < date.today():
+    if vence < hoy():
         raise LicenciaInvalida(f"Esta licencia de prueba venció el {vence.strftime('%d/%m/%Y')}. "
                                "Escríbanos para ampliarla o activar el portal de su conjunto.")
     return {"conjunto": datos["c"], "vence": vence, "contacto": datos.get("k", "")}
 
 
 def fin_del_dia(d: date) -> datetime:
-    return datetime.combine(d, datetime.max.time())
+    """La licencia vale hasta las 11:59 p. m. (hora de Colombia) del día de vencimiento."""
+    return datetime.combine(d, datetime.max.time().replace(microsecond=0), tzinfo=COLOMBIA)

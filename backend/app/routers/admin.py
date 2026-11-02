@@ -13,7 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from .. import licencias, models
-from ..config import MODO_DEMO
+from ..config import PERMITIR_LICENCIAS
 from ..cartera import estado_cuenta, liquidar_intereses, resumen_cartera
 from ..db import get_db
 from ..notificaciones import notificar
@@ -110,7 +110,7 @@ def actualizar_usuario(uid: int, datos: UsuarioUpdate, request: Request, u: mode
     x = db.get(models.Usuario, uid)
     if not x:
         raise HTTPException(404, "Usuario no encontrado")
-    if MODO_DEMO and x.email in licencias.PERFILES.values():
+    if PERMITIR_LICENCIAS and x.email in licencias.PROTEGIDOS:
         raise HTTPException(400, "En la demostración este usuario está protegido para que todos puedan usarlo")
     cambios = datos.model_dump(exclude_none=True)
     if "rol" in cambios and cambios["rol"] not in models.ROLES:
@@ -129,7 +129,7 @@ def restablecer(uid: int, request: Request, u: models.Usuario = Depends(solo_adm
     x = db.get(models.Usuario, uid)
     if not x:
         raise HTTPException(404, "Usuario no encontrado")
-    if MODO_DEMO and x.email in licencias.PERFILES.values():
+    if PERMITIR_LICENCIAS and x.email in licencias.PROTEGIDOS:
         raise HTTPException(400, "En la demostración este usuario está protegido para que todos puedan usarlo")
     clave = _clave_temporal()
     x.password_hash = hash_password(clave)

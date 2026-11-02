@@ -28,36 +28,13 @@ services:
         value: https://portal-avellana.onrender.com
       - key: TOKEN_MINUTOS
         value: "480"
-
-  # Portal de DEMOSTRACIÓN para administradores de otros conjuntos: datos ficticios,
-  # acceso solo con licencia de prueba. Plan gratuito: se duerme sin uso y al despertar
-  # vuelve a cargar los datos ficticios (la demostración se restablece sola).
-  # Nunca apunta a la base real de Avellana.
-  - type: web
-    name: portal-demo-verde360
-    runtime: docker
-    plan: free
-    region: oregon
-    branch: main
-    autoDeploy: true
-    healthCheckPath: /api/salud
-    envVars:
-      - key: MODO_DEMO
+      # Licencias de prueba de SOLO CONSULTA para administradores de otros conjuntos.
+      # Poner en "0" cuando Avellana tenga datos reales de propietarios (Ley 1581 de 2012).
+      - key: PERMITIR_LICENCIAS
         value: "1"
-      - key: CLAVE_MAESTRA      # la ve en Render > portal-demo-verde360 > Environment
+      - key: CLAVE_MAESTRA      # para generar licencias en /licencias; se ve en Render > Environment
         generateValue: true
-      - key: SECRET_KEY
-        generateValue: true
-      - key: NOMBRE_CONJUNTO
-        value: Conjunto Demostración Verde360
-      - key: CORS_ORIGINS
-        value: https://portal-demo-verde360.onrender.com
-      - key: UPLOAD_DIR
-        value: /tmp/uploads
-      - key: DIAS_LICENCIA
-        value: "15"
-      - key: WHATSAPP_VENTAS
-        value: "573208303847"
+
 
 databases:
   - name: portal-avellana-db

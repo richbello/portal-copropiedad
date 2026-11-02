@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import CORS_ORIGINS, DIAS_LICENCIA, MODO_DEMO, NOMBRE_CONJUNTO, WHATSAPP_VENTAS
+from .config import (CORS_ORIGINS, DIAS_LICENCIA, LICENCIA_SOLO_CONSULTA, MODO_DEMO, NOMBRE_CONJUNTO,
+                     PERMITIR_LICENCIAS, URL_VERDE360, WHATSAPP_VENTAS)
 from contextlib import asynccontextmanager
 
 from .db import actualizar_esquema
@@ -61,8 +62,9 @@ for r in (auth.router, cuentas.router, solicitudes.router, documentos.router, co
 @app.get("/api/salud")
 def salud():
     datos = {"ok": True, "conjunto": NOMBRE_CONJUNTO}
-    if MODO_DEMO:
-        datos.update(demo=True, dias_licencia=DIAS_LICENCIA, whatsapp=WHATSAPP_VENTAS)
+    if PERMITIR_LICENCIAS:
+        datos.update(demo=MODO_DEMO, licencias=True, solo_consulta=LICENCIA_SOLO_CONSULTA,
+                     dias_licencia=DIAS_LICENCIA, whatsapp=WHATSAPP_VENTAS, verde360=URL_VERDE360)
     return datos
 
 

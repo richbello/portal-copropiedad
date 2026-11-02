@@ -1,5 +1,6 @@
 import hmac
-from datetime import datetime, timedelta
+import secrets
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from .. import licencias, models
 from ..config import (CLAVE_MAESTRA, DIAS_LICENCIA, MAX_INTENTOS_LOGIN, MINUTOS_BLOQUEO,
-                      MODO_DEMO, NOMBRE_CONJUNTO)
+                      MODO_DEMO, PERMITIR_LICENCIAS)
 from ..db import get_db
 from ..security import (auditar, crear_token, hash_password, usuario_actual,
                         validar_fortaleza, verificar_password)
@@ -45,6 +46,7 @@ class GenerarLicenciaIn(BaseModel):
     clave_maestra: str
     conjunto: str
     dias: int = DIAS_LICENCIA
+    vence: str | None = None   # AAAA-MM-DD; si viene, manda sobre "dias"
     contacto: str = ""
 
 
@@ -122,20 +124,39 @@ def leer_todas(u: models.Usuario = Depends(usuario_actual), db: Session = Depend
 
 # ---------- Licencias de prueba (solo servidor de demostración) ----------
 
+def _usuario_de_prueba(db: Session, perfil: str) -> models.Usuario:
+    """Usuario con el que entra la licencia. Si el portal no tiene los usuarios de demostración, crea uno de prueba."""
+    for email in (licencias.PERFILES[perfil], licencias.PERFILES_PRUEBA[perfil]):
+        u = db.scalar(select(models.Usuario).where(models.Usuario.email == email))
+        if u:
+            return u
+    u = models.Usuario(email=licencias.PERFILES_PRUEBA[perfil], rol=perfil,
+                       nombre="Administración de prueba" if perfil == "administrador" else "Propietario de prueba",
+                       password_hash=hash_password(secrets.token_urlsafe(24)), debe_cambiar_password=False,
+                       acepto_tratamiento_datos=datetime.now())
+    db.add(u)
+    db.flush()
+    if perfil == "propietario":
+        unidad = db.scalar(select(models.Unidad).order_by(models.Unidad.id))
+        if not unidad:
+            raise HTTPException(503, "El portal todavía no tiene apartamentos cargados para mostrar la vista de propietario")
+        db.add(models.UsuarioUnidad(usuario_id=u.id, unidad_id=unidad.id, relacion="propietario"))
+    db.commit()
+    db.refresh(u)
+    return u
+
+
 @router.post("/licencia")
 def ingresar_con_licencia(datos: LicenciaIn, request: Request, db: Session = Depends(get_db)):
-    if not MODO_DEMO:
+    if not PERMITIR_LICENCIAS:
         raise HTTPException(404, "No disponible")
     try:
         lic = licencias.verificar(datos.codigo)
     except licencias.LicenciaInvalida as e:
         raise HTTPException(401, str(e))
-    email = licencias.PERFILES.get(datos.perfil)
-    if not email:
+    if datos.perfil not in licencias.PERFILES:
         raise HTTPException(400, "Perfil no válido")
-    u = db.scalar(select(models.Usuario).where(models.Usuario.email == email))
-    if not u:
-        raise HTTPException(503, "El portal de demostración se está preparando, intente en un minuto")
+    u = _usuario_de_prueba(db, datos.perfil)
     auditar(db, u.id, "licencia_prueba", f"{lic['conjunto']} · {datos.perfil} · vence {lic['vence']}", request)
     db.commit()
     token = crear_token(u, hasta=licencias.fin_del_dia(lic["vence"]),
@@ -146,15 +167,24 @@ def ingresar_con_licencia(datos: LicenciaIn, request: Request, db: Session = Dep
 
 @router.post("/licencia/generar")
 def generar_licencia(datos: GenerarLicenciaIn, request: Request):
-    if not MODO_DEMO or not CLAVE_MAESTRA:
+    if not PERMITIR_LICENCIAS or not CLAVE_MAESTRA:
         raise HTTPException(404, "No disponible")
     if not hmac.compare_digest(datos.clave_maestra.encode(), CLAVE_MAESTRA.encode()):
         raise HTTPException(401, "Clave maestra incorrecta")
     if not datos.conjunto.strip():
         raise HTTPException(400, "Escriba el nombre del conjunto")
-    if not 1 <= datos.dias <= 90:
-        raise HTTPException(400, "La licencia de prueba puede durar entre 1 y 90 días")
-    lic = licencias.generar(datos.conjunto, datos.dias, datos.contacto)
+    vence = None
+    if datos.vence:
+        try:
+            vence = date.fromisoformat(datos.vence)
+        except ValueError:
+            raise HTTPException(400, "Fecha de vencimiento no válida")
+        dias = (vence - licencias.hoy()).days
+    else:
+        dias = datos.dias
+    if not 0 <= dias <= 90:
+        raise HTTPException(400, "La licencia de prueba debe vencer entre hoy y los próximos 90 días")
+    lic = licencias.generar(datos.conjunto, dias, datos.contacto, vence)
     base = str(request.base_url).rstrip("/")
     lic["enlace"] = f"{base}/?licencia={lic['codigo']}"
     return lic

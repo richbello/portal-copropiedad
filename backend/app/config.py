@@ -38,6 +38,11 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 # Servidor de demostración: datos ficticios y acceso solo con licencia de prueba
 MODO_DEMO = os.getenv("MODO_DEMO", "").lower() in ("1", "true", "si", "sí")
 CLAVE_MAESTRA = os.getenv("CLAVE_MAESTRA", "")  # para generar licencias desde /licencias
+# Licencias de prueba también en un portal real (p. ej. Avellana mientras no tenga datos reales).
+# Ahí la licencia es de SOLO CONSULTA: no puede crear, cambiar ni borrar nada.
+PERMITIR_LICENCIAS = MODO_DEMO or os.getenv("PERMITIR_LICENCIAS", "").lower() in ("1", "true", "si", "sí")
+LICENCIA_SOLO_CONSULTA = PERMITIR_LICENCIAS and not MODO_DEMO
+URL_VERDE360 = os.getenv("URL_VERDE360", "https://richbello.github.io/Ciudad_verde_360/")
 DIAS_LICENCIA = int(os.getenv("DIAS_LICENCIA", "15"))
 WHATSAPP_VENTAS = os.getenv("WHATSAPP_VENTAS", "573208303847")
 

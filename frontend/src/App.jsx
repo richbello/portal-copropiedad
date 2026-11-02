@@ -5,7 +5,7 @@ import { URL_VERDE360, vieneDeVerde360 } from './verde360'
 import Login from './pages/Login'
 import LoginDemo from './pages/LoginDemo'
 import GenerarLicencia from './pages/GenerarLicencia'
-import { diasRestantes, enlaceWhatsApp, fechaCorta, guardarLicencia, licenciaGuardada } from './licencia'
+import { diasRestantes, enlaceWhatsApp, fechaCorta, guardarLicencia, licenciaGuardada, licenciaEnEnlace } from './licencia'
 import PrimerIngreso from './pages/PrimerIngreso'
 import Inicio from './pages/Inicio'
 import EstadoCuenta from './pages/EstadoCuenta'
@@ -36,6 +36,7 @@ export default function App() {
   const [cargando, setCargando] = useState(!!getToken())
   const [conjunto, setConjunto] = useState('Conjunto Avellana Ciudad Verde')
   const [salud, setSalud] = useState(null)
+  const [conLicencia, setConLicencia] = useState(licenciaEnEnlace)
 
   // El nombre viene del servidor (NOMBRE_CONJUNTO), para no repetirlo en el código
   useEffect(() => {
@@ -57,11 +58,16 @@ export default function App() {
   }, [])
 
   const ingresar = (token, u) => { setToken(token); setUsuario(u) }
-  const salir = () => { setToken(null); setUsuario(null) }
+  // La franja de prueba solo se muestra mientras la sesión abierta es la de la licencia
+  const salir = () => { const l = licenciaGuardada(); if (l) guardarLicencia({ ...l, activa: false }); setToken(null); setUsuario(null) }
 
   if (cargando || !salud) return <div className="vacio">Cargando…</div>
-  if (salud.demo && window.location.pathname === '/licencias') return <GenerarLicencia salud={salud} />
-  if (!usuario) return salud.demo ? <LoginDemo onIngreso={ingresar} salud={salud} /> : <Login onIngreso={ingresar} conjunto={conjunto} />
+  if (salud.licencias && window.location.pathname === '/licencias') return <GenerarLicencia salud={salud} conjunto={conjunto} />
+  if (!usuario) {
+    if (salud.demo || (salud.licencias && conLicencia))
+      return <LoginDemo onIngreso={ingresar} salud={salud} conjunto={conjunto} onUsuarioClave={salud.demo ? null : () => setConLicencia(false)} />
+    return <Login onIngreso={ingresar} conjunto={conjunto} onLicencia={salud.licencias ? () => setConLicencia(true) : null} />
+  }
   if (usuario.debe_cambiar_password || !usuario.acepto_tratamiento_datos)
     return <PrimerIngreso usuario={usuario} onListo={recargar} onSalir={salir} />
 
@@ -162,7 +168,7 @@ function Marco({ children }) {
           <button onClick={salir}>Cerrar sesión</button>
         </div>
       </aside>
-      <main className="contenido">{salud?.demo && <FranjaPrueba />}{children}</main>
+      <main className="contenido">{salud?.licencias && <FranjaPrueba />}{children}</main>
     </div>
   )
 }
@@ -173,7 +179,7 @@ function FranjaPrueba() {
   const [cambiando, setCambiando] = useState(false)
   const [error, setError] = useState('')
   const lic = licenciaGuardada()
-  if (!lic) return null
+  if (!lic || !lic.perfil || (usuario.rol !== 'administrador' && usuario.rol !== 'propietario') || !lic.activa) return null
   const otro = usuario.rol === 'administrador' ? 'propietario' : 'administrador'
   const dias = diasRestantes(lic.vence)
 
@@ -181,7 +187,7 @@ function FranjaPrueba() {
     setCambiando(true); setError('')
     try {
       const r = await api.post('/api/auth/licencia', { codigo: lic.codigo, perfil: otro })
-      guardarLicencia({ ...lic, ...r.licencia })
+      guardarLicencia({ ...lic, ...r.licencia, activa: true })
       window.history.replaceState(null, '', '/')
       ingresar(r.access_token, r.usuario)
     } catch (e) { setError(e.message) }
@@ -193,7 +199,7 @@ function FranjaPrueba() {
     <div className="franja-prueba" role="status">
       <div>
         <strong>Prueba · {lic.conjunto}</strong>
-        <span> · viendo como {usuario.rol === 'administrador' ? 'administración' : 'propietario'} · vence el {fechaCorta(lic.vence)}{dias <= 3 ? ` (${dias === 0 ? 'hoy' : `en ${dias} día${dias === 1 ? '' : 's'}`})` : ''} · datos ficticios</span>
+        <span> · viendo como {usuario.rol === 'administrador' ? 'administración' : 'propietario'} · vence el {fechaCorta(lic.vence)}{dias <= 3 ? ` (${dias === 0 ? 'hoy' : `en ${dias} día${dias === 1 ? '' : 's'}`})` : ''} · {salud.solo_consulta ? 'solo consulta' : 'datos ficticios'}</span>
         {error && <span className="franja-error"> · {error}</span>}
       </div>
       <div className="fila">

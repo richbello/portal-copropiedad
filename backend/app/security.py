@@ -8,7 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from . import models
-from .config import JWT_ALGORITHM, SECRET_KEY, TOKEN_MINUTOS
+from .config import JWT_ALGORITHM, LICENCIA_SOLO_CONSULTA, SECRET_KEY, TOKEN_MINUTOS
 from .db import get_db
 
 bearer = HTTPBearer(auto_error=False)
@@ -45,7 +45,12 @@ def crear_token(usuario: models.Usuario, hasta: datetime | None = None, extra: d
     return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
+# Lo único que una licencia de solo consulta puede "escribir": marcar sus avisos como leídos
+_PERMITIDOS_CONSULTA = ("/api/auth/notificaciones/leer-todas",)
+
+
 def usuario_actual(
+    request: Request,
     cred: HTTPAuthorizationCredentials | None = Depends(bearer),
     db: Session = Depends(get_db),
 ) -> models.Usuario:
@@ -57,6 +62,10 @@ def usuario_actual(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "La sesión expiró, ingrese de nuevo")
     except jwt.PyJWTError:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token inválido")
+    if (payload.get("lic") and LICENCIA_SOLO_CONSULTA and request.method not in ("GET", "HEAD")
+            and request.url.path not in _PERMITIDOS_CONSULTA):
+        raise HTTPException(status.HTTP_403_FORBIDDEN,
+                            "Está usando una licencia de prueba de solo consulta: puede ver todo, pero no guardar cambios.")
     usuario = db.get(models.Usuario, int(payload["sub"]))
     if not usuario or not usuario.activo:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Usuario inactivo")

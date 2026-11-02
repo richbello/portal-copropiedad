@@ -209,19 +209,20 @@ frontend/
   src/pages/           una pantalla por archivo
 ```
 
-## Licencias de prueba para administradores (portal de demostración)
+## Licencias de prueba para administradores
 
-El servicio `portal-demo-verde360` (en `render.yaml`) es una copia del portal con **datos ficticios**
-(`MODO_DEMO=1`). No usa la base de Avellana. Ahí no se ingresa con correo y clave, solo con una
-**licencia de prueba** que vence sola.
+Con `PERMITIR_LICENCIAS=1` (ya está en `render.yaml`) el portal acepta, además del ingreso normal,
+**licencias de prueba de solo consulta**: quien la usa puede abrir todas las pantallas como
+administración o como propietario, pero cualquier intento de guardar, crear o borrar se rechaza.
+Las cuentas reales (administración, propietarios) no se ven afectadas.
 
-1. Abra `https://portal-demo-verde360.onrender.com/licencias`.
-2. Escriba la **clave maestra** (Render → portal-demo-verde360 → Environment → `CLAVE_MAESTRA`),
-   el conjunto, el administrador y los días (7 a 60).
-3. Copie el mensaje o envíelo por WhatsApp. El enlace abre el portal con el código cargado y el
-   administrador elige **Como administración** o **Como propietario**; arriba tiene un botón para
-   cambiar de vista y otro para pedir la activación en su conjunto.
+1. Abra `https://portal-avellana.onrender.com/licencias`.
+2. Escriba la **clave maestra** (Render → portal-avellana → Environment → `CLAVE_MAESTRA`),
+   para quién es, el celular (opcional) y la **fecha de vencimiento** (vale hasta las 11:59 p. m.
+   hora Colombia de ese día).
+3. Copie el mensaje o envíelo por WhatsApp: trae el enlace del portal con el código y el de Verde360.
 
 La licencia es un código firmado (`app/licencias.py`): nadie puede cambiar la fecha sin invalidarla
-y la sesión nunca dura más allá del vencimiento. El plan gratuito se duerme tras 15 min sin uso
-(la primera carga tarda ~1 min) y al despertar recarga los datos ficticios.
+y la sesión nunca dura más allá del vencimiento. **Cuando el portal tenga datos reales de
+propietarios, ponga `PERMITIR_LICENCIAS=0`** (Ley 1581 de 2012). Para una demostración aparte con
+datos ficticios que se puedan editar, despliegue otra copia con `MODO_DEMO=1`.

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from '../api'
 import { URL_VERDE360, vieneDeVerde360 } from '../verde360'
 
-export default function Login({ onIngreso, conjunto }) {
+export default function Login({ onIngreso, conjunto, onLicencia }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -49,6 +49,7 @@ export default function Login({ onIngreso, conjunto }) {
           {error && <div className="aviso error" role="alert">{error}</div>}
           <button disabled={enviando}>{enviando ? 'Ingresando…' : 'Ingresar'}</button>
           <p className="peq suave">¿No tiene usuario o olvidó su contraseña? Solicítelo en la administración; le entregarán una clave temporal.</p>
+          {onLicencia && <p className="peq suave" style={{ margin: 0 }}>¿Le enviamos una licencia de prueba? <button type="button" className="texto" onClick={onLicencia}>Ingresar con el código</button></p>}
           <p className="peq suave red-verde">Parte de la red <a href={URL_VERDE360} target="_blank" rel="noopener">Verde360 · Ciudad Verde</a></p>
         </form>
       </section>
