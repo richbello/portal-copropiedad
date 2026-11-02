@@ -408,3 +408,10 @@ label.casilla input { width: 20px; height: 20px; }
   .recibo-saldo { font-size: 2.3rem; }
   .barra-inferior a, .barra-inferior button { font-size: 0.66rem; }
 }
+
+/* Integración con Verde360 */
+.volver-verde { display: inline-block; margin-bottom: 10px; font-size: .88rem; font-weight: 600; color: #0f7a4a; text-decoration: none; }
+.volver-verde:hover { text-decoration: underline; }
+.red-verde { margin-top: 14px; text-align: center; }
+.red-verde a { color: #0f7a4a; font-weight: 600; }
+.nav-verde { margin-top: 12px; opacity: .85; }

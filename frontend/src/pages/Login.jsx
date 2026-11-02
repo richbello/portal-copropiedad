@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { api } from '../api'
+import { URL_VERDE360, vieneDeVerde360 } from '../verde360'
 
 export default function Login({ onIngreso, conjunto }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [desdeVerde] = useState(vieneDeVerde360)
 
   async function enviar(e) {
     e.preventDefault()
@@ -35,7 +37,9 @@ export default function Login({ onIngreso, conjunto }) {
       </section>
       <section className="ingreso-form">
         <form className="panel formulario" onSubmit={enviar}>
+          {desdeVerde && <a className="volver-verde" href={URL_VERDE360}>← Volver a Verde360</a>}
           <h2>Ingresar</h2>
+          {desdeVerde && <p className="peq suave" style={{ marginTop: 0 }}>Propietarios, residentes y administración ingresan con el mismo formulario. Cada quien ve lo que le corresponde según su usuario.</p>}
           <label>Correo electrónico
             <input type="email" autoComplete="username" required value={email} onChange={e => setEmail(e.target.value)} />
           </label>
@@ -45,6 +49,7 @@ export default function Login({ onIngreso, conjunto }) {
           {error && <div className="aviso error" role="alert">{error}</div>}
           <button disabled={enviando}>{enviando ? 'Ingresando…' : 'Ingresar'}</button>
           <p className="peq suave">¿No tiene usuario o olvidó su contraseña? Solicítelo en la administración; le entregarán una clave temporal.</p>
+          <p className="peq suave red-verde">Parte de la red <a href={URL_VERDE360} target="_blank" rel="noopener">Verde360 · Ciudad Verde</a></p>
         </form>
       </section>
     </div>

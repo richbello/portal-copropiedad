@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { api, esGestion, esLecturaGlobal, getToken, NOMBRES, setToken } from './api'
+import { URL_VERDE360, vieneDeVerde360 } from './verde360'
 import Login from './pages/Login'
 import PrimerIngreso from './pages/PrimerIngreso'
 import Inicio from './pages/Inicio'
@@ -147,6 +148,7 @@ function Marco({ children }) {
             {gestion && <NavLink to="/admin/usuarios">Propietarios y usuarios</NavLink>}
             <NavLink to="/admin/configuracion">Configuración y auditoría</NavLink>
           </>}
+          {vieneDeVerde360() && <a className="nav-verde" href={URL_VERDE360}>← Volver a Verde360</a>}
         </nav>
         <div className="usuario-lateral">
           <div><strong>{usuario.nombre}</strong></div>
