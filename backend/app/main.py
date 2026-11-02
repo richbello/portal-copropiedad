@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import CORS_ORIGINS, NOMBRE_CONJUNTO
+from .config import CORS_ORIGINS, DIAS_LICENCIA, MODO_DEMO, NOMBRE_CONJUNTO, WHATSAPP_VENTAS
 from contextlib import asynccontextmanager
 
 from .db import actualizar_esquema
@@ -17,6 +17,18 @@ from .vencimientos import iniciar_revision_periodica
 logging.basicConfig(level=logging.INFO)
 mimetypes.add_type("application/manifest+json", ".webmanifest")
 _nuevas = actualizar_esquema()
+if MODO_DEMO:
+    # El servidor de demostración arranca siempre con datos ficticios (nunca con datos reales)
+    from sqlalchemy import func, select
+
+    from . import models as _m
+    from .db import SessionLocal
+    with SessionLocal() as _db:
+        _vacia = not _db.scalar(select(func.count()).select_from(_m.Usuario))
+    if _vacia:
+        import seed
+        seed.main()
+        logging.getLogger("portal").info("Portal de demostración: datos ficticios cargados")
 if _nuevas:
     logging.getLogger("portal").info("Base de datos actualizada, columnas nuevas: %s", ", ".join(_nuevas))
 
@@ -48,7 +60,10 @@ for r in (auth.router, cuentas.router, solicitudes.router, documentos.router, co
 
 @app.get("/api/salud")
 def salud():
-    return {"ok": True, "conjunto": NOMBRE_CONJUNTO}
+    datos = {"ok": True, "conjunto": NOMBRE_CONJUNTO}
+    if MODO_DEMO:
+        datos.update(demo=True, dias_licencia=DIAS_LICENCIA, whatsapp=WHATSAPP_VENTAS)
+    return datos
 
 
 # En producción el frontend compilado se sirve desde el mismo servidor

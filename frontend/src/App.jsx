@@ -3,6 +3,9 @@ import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { api, esGestion, esLecturaGlobal, getToken, NOMBRES, setToken } from './api'
 import { URL_VERDE360, vieneDeVerde360 } from './verde360'
 import Login from './pages/Login'
+import LoginDemo from './pages/LoginDemo'
+import GenerarLicencia from './pages/GenerarLicencia'
+import { diasRestantes, enlaceWhatsApp, fechaCorta, guardarLicencia, licenciaGuardada } from './licencia'
 import PrimerIngreso from './pages/PrimerIngreso'
 import Inicio from './pages/Inicio'
 import EstadoCuenta from './pages/EstadoCuenta'
@@ -32,10 +35,12 @@ export default function App() {
   const [usuario, setUsuario] = useState(null)
   const [cargando, setCargando] = useState(!!getToken())
   const [conjunto, setConjunto] = useState('Conjunto Avellana Ciudad Verde')
+  const [salud, setSalud] = useState(null)
 
   // El nombre viene del servidor (NOMBRE_CONJUNTO), para no repetirlo en el código
   useEffect(() => {
-    api.get('/api/salud').then(r => { setConjunto(r.conjunto); document.title = r.conjunto }).catch(() => {})
+    api.get('/api/salud').then(r => { setSalud(r); setConjunto(r.conjunto); document.title = r.conjunto })
+      .catch(() => setSalud({}))
   }, [])
 
   const recargar = useCallback(async () => {
@@ -54,13 +59,14 @@ export default function App() {
   const ingresar = (token, u) => { setToken(token); setUsuario(u) }
   const salir = () => { setToken(null); setUsuario(null) }
 
-  if (cargando) return <div className="vacio">Cargando…</div>
-  if (!usuario) return <Login onIngreso={ingresar} conjunto={conjunto} />
+  if (cargando || !salud) return <div className="vacio">Cargando…</div>
+  if (salud.demo && window.location.pathname === '/licencias') return <GenerarLicencia salud={salud} />
+  if (!usuario) return salud.demo ? <LoginDemo onIngreso={ingresar} salud={salud} /> : <Login onIngreso={ingresar} conjunto={conjunto} />
   if (usuario.debe_cambiar_password || !usuario.acepto_tratamiento_datos)
     return <PrimerIngreso usuario={usuario} onListo={recargar} onSalir={salir} />
 
   return (
-    <SesionCtx.Provider value={{ usuario, recargar, salir, conjunto }}>
+    <SesionCtx.Provider value={{ usuario, recargar, salir, conjunto, salud, ingresar }}>
       <Marco>
         <Routes>
           <Route path="/" element={esLecturaGlobal(usuario) ? <AdminTablero /> : <Inicio />} />
@@ -90,7 +96,7 @@ export default function App() {
 }
 
 function Marco({ children }) {
-  const { usuario, salir, conjunto } = useSesion()
+  const { usuario, salir, conjunto, salud } = useSesion()
   const [abierto, setAbierto] = useState(false)
   const [sinLeer, setSinLeer] = useState(0)
   const loc = useLocation()
@@ -156,7 +162,44 @@ function Marco({ children }) {
           <button onClick={salir}>Cerrar sesión</button>
         </div>
       </aside>
-      <main className="contenido">{children}</main>
+      <main className="contenido">{salud?.demo && <FranjaPrueba />}{children}</main>
+    </div>
+  )
+}
+
+// Franja del portal de demostración: de quién es la licencia, cuándo vence y cambio rápido de perfil
+function FranjaPrueba() {
+  const { usuario, salud, ingresar } = useSesion()
+  const [cambiando, setCambiando] = useState(false)
+  const [error, setError] = useState('')
+  const lic = licenciaGuardada()
+  if (!lic) return null
+  const otro = usuario.rol === 'administrador' ? 'propietario' : 'administrador'
+  const dias = diasRestantes(lic.vence)
+
+  async function cambiar() {
+    setCambiando(true); setError('')
+    try {
+      const r = await api.post('/api/auth/licencia', { codigo: lic.codigo, perfil: otro })
+      guardarLicencia({ ...lic, ...r.licencia })
+      window.history.replaceState(null, '', '/')
+      ingresar(r.access_token, r.usuario)
+    } catch (e) { setError(e.message) }
+    setCambiando(false)
+  }
+
+  const texto = `Hola, probé el portal de copropiedad de Verde360 para ${lic.conjunto} y quiero activarlo en mi conjunto.`
+  return (
+    <div className="franja-prueba" role="status">
+      <div>
+        <strong>Prueba · {lic.conjunto}</strong>
+        <span> · viendo como {usuario.rol === 'administrador' ? 'administración' : 'propietario'} · vence el {fechaCorta(lic.vence)}{dias <= 3 ? ` (${dias === 0 ? 'hoy' : `en ${dias} día${dias === 1 ? '' : 's'}`})` : ''} · datos ficticios</span>
+        {error && <span className="franja-error"> · {error}</span>}
+      </div>
+      <div className="fila">
+        <button className="secundario" disabled={cambiando} onClick={cambiar}>{cambiando ? 'Cambiando…' : `Ver como ${otro === 'administrador' ? 'administración' : 'propietario'}`}</button>
+        <a className="boton" href={enlaceWhatsApp(salud.whatsapp || '573208303847', texto)} target="_blank" rel="noopener">Activar en mi conjunto</a>
+      </div>
     </div>
   )
 }

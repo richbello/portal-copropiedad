@@ -208,3 +208,20 @@ frontend/
   src/App.jsx          sesión, menú y rutas por rol
   src/pages/           una pantalla por archivo
 ```
+
+## Licencias de prueba para administradores (portal de demostración)
+
+El servicio `portal-demo-verde360` (en `render.yaml`) es una copia del portal con **datos ficticios**
+(`MODO_DEMO=1`). No usa la base de Avellana. Ahí no se ingresa con correo y clave, solo con una
+**licencia de prueba** que vence sola.
+
+1. Abra `https://portal-demo-verde360.onrender.com/licencias`.
+2. Escriba la **clave maestra** (Render → portal-demo-verde360 → Environment → `CLAVE_MAESTRA`),
+   el conjunto, el administrador y los días (7 a 60).
+3. Copie el mensaje o envíelo por WhatsApp. El enlace abre el portal con el código cargado y el
+   administrador elige **Como administración** o **Como propietario**; arriba tiene un botón para
+   cambiar de vista y otro para pedir la activación en su conjunto.
+
+La licencia es un código firmado (`app/licencias.py`): nadie puede cambiar la fecha sin invalidarla
+y la sesión nunca dura más allá del vencimiento. El plan gratuito se duerme tras 15 min sin uso
+(la primera carga tarda ~1 min) y al despertar recarga los datos ficticios.

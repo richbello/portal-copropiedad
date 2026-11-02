@@ -37,12 +37,11 @@ def validar_fortaleza(password: str) -> None:
         raise HTTPException(400, "La contraseña debe tener " + ", ".join(errores))
 
 
-def crear_token(usuario: models.Usuario) -> str:
-    payload = {
-        "sub": str(usuario.id),
-        "rol": usuario.rol,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=TOKEN_MINUTOS),
-    }
+def crear_token(usuario: models.Usuario, hasta: datetime | None = None, extra: dict | None = None) -> str:
+    exp = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_MINUTOS)
+    if hasta is not None:  # una licencia de prueba nunca da una sesión más larga que su vigencia
+        exp = min(exp, hasta.astimezone(timezone.utc))
+    payload = {"sub": str(usuario.id), "rol": usuario.rol, "exp": exp, **(extra or {})}
     return jwt.encode(payload, SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 

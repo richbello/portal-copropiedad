@@ -35,6 +35,12 @@ MINUTOS_BLOQUEO = 15
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
+# Servidor de demostración: datos ficticios y acceso solo con licencia de prueba
+MODO_DEMO = os.getenv("MODO_DEMO", "").lower() in ("1", "true", "si", "sí")
+CLAVE_MAESTRA = os.getenv("CLAVE_MAESTRA", "")  # para generar licencias desde /licencias
+DIAS_LICENCIA = int(os.getenv("DIAS_LICENCIA", "15"))
+WHATSAPP_VENTAS = os.getenv("WHATSAPP_VENTAS", "573208303847")
+
 # Datos de la copropiedad (aparecen en PDFs)
 NOMBRE_CONJUNTO = os.getenv("NOMBRE_CONJUNTO", "Conjunto Avellana Ciudad Verde")
 NIT_CONJUNTO = os.getenv("NIT_CONJUNTO", "900.000.000-0")

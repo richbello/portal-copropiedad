@@ -415,3 +415,16 @@ label.casilla input { width: 20px; height: 20px; }
 .red-verde { margin-top: 14px; text-align: center; }
 .red-verde a { color: #0f7a4a; font-weight: 600; }
 .nav-verde { margin-top: 12px; opacity: .85; }
+
+/* ---------- Portal de demostración (licencias de prueba) ---------- */
+.sello-demo { justify-self: start; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ocre); background: var(--ocre-claro); padding: 4px 10px; border-radius: 999px; }
+.perfiles-demo { display: grid; gap: 10px; }
+.perfiles-demo button { display: grid; gap: 2px; text-align: left; padding: 12px 14px; }
+.perfiles-demo button small { font-weight: 400; opacity: .85; font-size: .8rem; }
+.franja-prueba { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--ocre-claro); border: 1px solid color-mix(in srgb, var(--ocre) 45%, transparent);
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; font-size: .9rem; }
+.franja-prueba .fila { gap: 8px; }
+.franja-prueba button, .franja-prueba .boton { padding: 7px 12px; font-size: .85rem; }
+.franja-error { color: var(--rojo); }
