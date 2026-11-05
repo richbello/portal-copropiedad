@@ -34,7 +34,7 @@ export const useSesion = () => useContext(SesionCtx)
 export default function App() {
   const [usuario, setUsuario] = useState(null)
   const [cargando, setCargando] = useState(!!getToken())
-  const [conjunto, setConjunto] = useState('Conjunto Avellana Ciudad Verde')
+  const [conjunto, setConjunto] = useState('Conjunto XXXX Ciudad Verde')
   const [salud, setSalud] = useState(null)
   const [conLicencia, setConLicencia] = useState(licenciaEnEnlace)
 

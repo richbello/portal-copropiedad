@@ -21,7 +21,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: NOMBRE_CONJUNTO
-        value: Conjunto Avellana Ciudad Verde
+        value: Conjunto XXXX Ciudad Verde
       - key: NIT_CONJUNTO
         value: 900.000.000-0
       - key: CORS_ORIGINS

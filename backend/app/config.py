@@ -47,7 +47,7 @@ DIAS_LICENCIA = int(os.getenv("DIAS_LICENCIA", "15"))
 WHATSAPP_VENTAS = os.getenv("WHATSAPP_VENTAS", "573208303847")
 
 # Datos de la copropiedad (aparecen en PDFs)
-NOMBRE_CONJUNTO = os.getenv("NOMBRE_CONJUNTO", "Conjunto Avellana Ciudad Verde")
+NOMBRE_CONJUNTO = os.getenv("NOMBRE_CONJUNTO", "Conjunto XXXX Ciudad Verde")
 NIT_CONJUNTO = os.getenv("NIT_CONJUNTO", "900.000.000-0")
 
 # Días hábiles de respuesta por tipo de solicitud (Ley 1755 de 2015 para peticiones)
