@@ -125,6 +125,25 @@ a { color: var(--verde); }
   .encabezado > .fila > button, .encabezado > .fila > .boton, .encabezado > .fila > select { flex: 1 1 auto; text-align: center; }
   .panel { padding: 16px; border-radius: 10px; }
 }
+/* Celular: el menú "Más" muestra TODAS las opciones en cuadrícula de 2 columnas,
+   para que quepan sin tener que desplazarse (antes la lista quedaba cortada abajo). */
+@media (max-width: 860px) {
+  .lateral { gap: 10px; padding: calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom)); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .marca { font-size: 0.98rem; }
+  .cerrar-menu { min-height: 40px; min-width: 40px; padding: 6px; }
+  .nav { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .nav a {
+    min-height: 42px; padding: 6px 10px; font-size: 0.84rem; line-height: 1.2;
+    background: rgba(255,255,255,0.07); border-radius: 10px;
+  }
+  .nav-grupo, .nav-verde { grid-column: 1 / -1; }
+  .nav-grupo { padding: 6px 4px 0; }
+  .nav-verde { margin-top: 4px; justify-content: center !important; background: none !important; border: 1px solid rgba(255,255,255,0.3); }
+  .usuario-lateral { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 4px 0; font-size: 0.8rem; }
+  .usuario-lateral > div:nth-child(2) { display: none; }
+  .usuario-lateral button { margin-top: 0; flex-shrink: 0; }
+}
+body.menu-abierto { overflow: hidden; }
 @media (max-width: 860px) and (prefers-reduced-motion: no-preference) {
   .lateral { transition: transform 0.22s ease-out, visibility 0.22s; }
 }

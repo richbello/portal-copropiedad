@@ -108,6 +108,8 @@ function Marco({ children }) {
   const loc = useLocation()
 
   useEffect(() => { setAbierto(false) }, [loc.pathname])
+  // Con el menú abierto en el celular, la página de atrás no se desplaza (solo el menú)
+  useEffect(() => { document.body.classList.toggle('menu-abierto', abierto); return () => document.body.classList.remove('menu-abierto') }, [abierto])
   useEffect(() => {
     api.get('/api/auth/notificaciones').then(n => setSinLeer(n.filter(x => !x.leida).length)).catch(() => {})
   }, [loc.pathname])
